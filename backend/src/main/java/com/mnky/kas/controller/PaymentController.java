@@ -27,8 +27,8 @@ public class PaymentController {
 
     @GetMapping("/vnpay-callback")
     public RedirectView payCallbackHandler(HttpServletRequest request) {
-        vnPayService.handleVnPayCallback(request);
-        return new RedirectView("http://localhost:5173/billing");
+        String url = vnPayService.handleVnPayCallback(request);
+        return new RedirectView(url);
     }
 
 

@@ -41,7 +41,7 @@ const BillingList = () => {
       event.preventDefault();
       console.log('Selected transactions to pay:', Array.from(selectedTransactions));
       const paymentUrl = await payByVNPay(Array.from(selectedTransactions));
-      if (paymentUrl)
+      if (paymentUrl)         
          window.open(paymentUrl, '_blank');
       else
          console.error('Failed to get payment URL');
@@ -71,7 +71,7 @@ const BillingList = () => {
                         </div>
                         <div className="col-span-1">{transaction.description}</div>
                         <div className="col-span-1">{formatMoney(transaction.amount)} VND</div>
-                        <div className="col-span-1">{formatInTimeZone(new Date(transaction.closed), timezone, "dd.MM.yyyy HH:mm a")}</div>
+                        <div className="col-span-1">{transaction.closed && formatInTimeZone(new Date(transaction.closed), timezone, "dd.MM.yyyy HH:mm a")}</div>
                         <div className="col-span-1">
                            <NavLink to={`/invoice/${transaction.invoiceId}`} className="text-blue-500 hover:underline">
                               View

@@ -1,7 +1,9 @@
 package com.mnky.kas.service;
 
 import com.mnky.kas.dto.request.WalletRegisterRequest;
+import com.mnky.kas.dto.response.TransactionResponse;
 import com.mnky.kas.dto.response.WalletResponse;
+import com.mnky.kas.mapper.TransactionMapper;
 import com.mnky.kas.model.Member;
 import com.mnky.kas.model.Transaction;
 import com.mnky.kas.model.Wallet;
@@ -22,12 +24,18 @@ import java.util.Map;
 
 @Service
 public class WalletServiceImpl implements WalletService {
+    private final WalletRepository walletRepository;
+    private final MemberRepository memberRepository;
+    private final TransactionRepository transactionRepository;
+    private final TransactionMapper transactionMapper;
+
     @Autowired
-    private WalletRepository walletRepository;
-    @Autowired
-    private MemberRepository memberRepository;
-    @Autowired
-    private TransactionRepository transactionRepository;
+    public WalletServiceImpl(WalletRepository walletRepository, MemberRepository memberRepository, TransactionRepository transactionRepository, TransactionMapper transactionMapper) {
+        this.walletRepository = walletRepository;
+        this.memberRepository = memberRepository;
+        this.transactionRepository = transactionRepository;
+        this.transactionMapper = transactionMapper;
+    }
 
     @Override
     @Transactional
@@ -53,14 +61,14 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional
-    public void addBalance(String bearerToken, Integer balance) throws ParseException {
+    public TransactionResponse addBalanceTransaction(String bearerToken, Double balance) throws ParseException {
         String username = JWTUtil.getUserNameFromToken(bearerToken.substring(7));
         Member member = memberRepository.findByUsername(username);
 
         //Create Transactions
         Transaction transaction = new Transaction();
         transaction.setAmount(balance);
-        transaction.setDescription(new Date().getTime() + "_" + "ADD_WALLET_BALANCE" + balance);
+        transaction.setDescription(new Date().getTime() + "_" + "ADD_" + balance);
         transaction.setPaymentType(Transaction.PaymentType.WALLET);
         transaction.setClosed(null);
         transaction.setCreated(new Timestamp(System.currentTimeMillis()));
@@ -72,8 +80,17 @@ public class WalletServiceImpl implements WalletService {
         transaction.setStatus(Transaction.TransactionStatus.PENDING);
 
 //        System.out.println("trans: "+ transaction.toString());
-        transactionRepository.save(transaction);
+        return transactionMapper.toTransactionResponse(transactionRepository.save(transaction));
 
+
+    }
+
+    @Override
+    public void addBalance(Member owner , Double balance) {
+
+        Wallet wallet = walletRepository.findByOwner(owner);
+        wallet.setBalance(wallet.getBalance() + balance);
+        walletRepository.save(wallet);
 
     }
 

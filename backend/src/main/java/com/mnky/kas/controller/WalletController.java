@@ -1,7 +1,9 @@
 package com.mnky.kas.controller;
 
 import com.mnky.kas.dto.response.ApiResponse;
+import com.mnky.kas.dto.response.TransactionResponse;
 import com.mnky.kas.dto.response.WalletResponse;
+import com.mnky.kas.model.Transaction;
 import com.mnky.kas.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,21 +25,22 @@ public class WalletController {
 
 
     @PostMapping("/wallet/{balance}")
-    public ApiResponse addBalance(@RequestHeader("Authorization") String bearerToken,
-                                  @PathVariable Integer balance) {
+    public ApiResponse<TransactionResponse> addBalance(@RequestHeader("Authorization") String bearerToken,
+                                  @PathVariable Double balance) {
         try {
-            walletService.addBalance(bearerToken, balance);
-            return ApiResponse.builder()
+            TransactionResponse transactionResponse = walletService.addBalanceTransaction(bearerToken, balance);
+            return ApiResponse.<TransactionResponse>builder()
                     .code(200)
                     .message("Success")
+                    .data(transactionResponse)
                     .build();
         } catch (ParseException e) {
-            return ApiResponse.builder()
+            return ApiResponse.<TransactionResponse>builder()
                     .code(400)
                     .message("Invalid balance format")
                     .build();
         } catch (Exception e) {
-            return ApiResponse.builder()
+            return ApiResponse.<TransactionResponse>builder()
                     .code(500)
                     .message("An error occurred while adding balance")
                     .build();

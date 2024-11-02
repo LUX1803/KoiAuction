@@ -7,19 +7,26 @@ import React, { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom';
 import { Checkbox } from './ui/checkbox';
 import { useAuth } from '@/context/AuthContext';
-import { getWalletBallance } from '@/service/walletService';
+import { addWalletBalance, getWalletBallance } from '@/service/walletService';
 import { Button, Form, Input, InputNumber, Modal } from 'antd';
+import { Toast } from './ui/toast';
+import { useToast } from '@/hooks/use-toast';
 
 const Wallet = () => {
 
     const { user } = useAuth();
+    const { toast } = useToast();
+
     const [ballance, setBallance] = useState(null);
 
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [selectedTransactions, setSelectedTransactions] = useState<Set<number>>(new Set());
     const timezone = 'Asia/Bangkok';
 
+    //Create Trans
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [balance, setBalance] = useState<number>(0);
+
 
     const showModal = () => {
         setIsModalOpen(true);
@@ -47,7 +54,6 @@ const Wallet = () => {
     }, [user]);
 
     const toggleSelection = (transactionId: number) => {
-        console.log('Toggle selection:', transactionId);
         setSelectedTransactions((prev) => {
             const newSelected = new Set(prev);
             if (newSelected.has(transactionId)) {
@@ -69,14 +75,31 @@ const Wallet = () => {
             console.error('Failed to get payment URL');
     };
 
+    const addBalance = async () => {
+        addWalletBalance(balance).then((data) => {
+            setTransactions([...transactions, data]);
+            toast({
+                variant: "success",
+                title: "Transaction created successfully!",
+            });
+        }).catch((error) => {
+            console.log("error::v:: ", error);
+            toast({
+                variant: "destructive",
+                title: "Transaction created failed!",
+            });
+        });        
+    }
+
     return (
         <>
             <Modal title="Create Transaction" open={isModalOpen} onCancel={() => { setIsModalOpen(false); }} onOk={() => {
+                addBalance();
                 setIsModalOpen(false);
             }}>
                 <Form layout="vertical" autoComplete="off">
                     <Form.Item name="age" label="Input Amount: ">
-                        <InputNumber className='w-1/2' />
+                        <InputNumber className='w-1/2' value={balance} onChange={ (e) => e && setBalance(e) } />
                     </Form.Item>
                 </Form>
             </Modal>
@@ -94,7 +117,6 @@ const Wallet = () => {
                         <div className="col-span-1">Description</div>
                         <div className="col-span-1">Amount</div>
                         <div className="col-span-1">Due Date</div>
-                        <div className="col-span-1">Detail</div>
                         <div className="col-span-1">Status</div>
                         <div className="col-span-1">Action</div>
                     </div>
@@ -108,7 +130,7 @@ const Wallet = () => {
                                 <div className="col-span-1">{transaction.description}</div>
                                 <div className="col-span-1">{formatMoney(transaction.amount)} VND</div>
                                 <div className="col-span-1">{formatInTimeZone(new Date(transaction.created), timezone, "dd.MM.yyyy HH:mm a")}</div>
-                                <div className="col-span-1">
+                                <div className={`col-span-1 ${transaction.status === 'PENDING' ? 'text-orange-500' : 'text-green-500'}`}>
                                     {transaction.status}
                                 </div>
                                 <div className="col-span-1">

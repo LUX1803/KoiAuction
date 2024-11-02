@@ -22,6 +22,7 @@ public class VNPayService {
     private final PaymentRepository paymentRepository;
     private final LotRepository lotRepository;
     private final KoiRepository koiRepository;
+    private final WalletService walletService;
 
     public VNPayResponse createVnPayPayment(HttpServletRequest request) {
         String[] transactionIds = request.getParameterValues("transactionIds");
@@ -43,8 +44,6 @@ public class VNPayService {
         String hashData = VNPayUtil.getPaymentURL(vnpParamsMap, false);
         String vnpSecureHash = VNPayUtil.hmacSHA512(VNPayUtil.getSecretKey(), hashData);
 
-
-
         queryUrl += "&vnp_SecureHash=" + vnpSecureHash;
         String paymentUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html" + "?" + queryUrl;
 
@@ -52,46 +51,79 @@ public class VNPayService {
         return new VNPayResponse(200, "Success", paymentUrl);
     }
 
-    public void handleVnPayCallback(HttpServletRequest request) {
+    public String handleVnPayCallback(HttpServletRequest request) {
 
-                String responseCode = request.getParameter("vnp_ResponseCode");
-                if (responseCode.equals("00")) {
-                    String[] transactionIds = request.getParameter("vnp_TxnRef").split(",");
-                    for (String transactionId : transactionIds) {
-                        System.out.println(transactionId);
-                        Transaction trans = transactionRepository.findById(Short.parseShort(transactionId));
-                        trans.setStatus(Transaction.TransactionStatus.SUCCESS);
-                        Invoice invoice = invoiceRepository.findById(trans.getInvoice().getId());
-                        invoice.setStatus(Invoice.InvoiceStatus.PAID);
-                        Lot lot = lotRepository.findByInvoice_Id(invoice.getId());
-                        Koi koi = lot.getKoi();
-                        koi.setStatus(Koi.KoiStatus.SHIPPING);
+        String responseCode = request.getParameter("vnp_ResponseCode");
+        boolean isAddBalance = true;
 
-                        koiRepository.save(koi);
-                        invoiceRepository.save(invoice);
-                        transactionRepository.save(trans);
-                    }
-                    Set<Transaction> transactions = new HashSet<>();
-                    for (String transactionId : transactionIds) {
-                        transactions.add(transactionRepository.findById(Short.parseShort(transactionId)));
-                    }
-                    Payment payment = new Payment();
-                    payment.setVnpAmount(Double.parseDouble(request.getParameter("vnp_Amount")));
-                    payment.setVnpBankCode(request.getParameter("vnp_BankCode"));
-                    payment.setVnpCardType(request.getParameter("vnp_CardType"));
-                    payment.setTransaction(transactions);
-                    Payment savedPayment = paymentRepository.save(payment);
 
-                    for (String transactionId : transactionIds) {
-                        Transaction trans = transactionRepository.findById(Short.parseShort(transactionId));
-                        trans.setPayment(savedPayment);
-                        trans.setPaymentType(Transaction.PaymentType.BANK);
-                        transactionRepository.save(trans);
-                    }
+        if (responseCode.equals("00")) {
+            String[] transactionIds = request.getParameter("vnp_TxnRef").split(",");
+            for (String transactionId : transactionIds) {
+                System.out.println(transactionId);
+                Transaction trans = transactionRepository.findById(Short.parseShort(transactionId));
+                trans.setStatus(Transaction.TransactionStatus.SUCCESS);
+
+                if (trans.getInvoice() != null) {
+                    isAddBalance = false;
+                    Invoice invoice = invoiceRepository.findById(trans.getInvoice().getId());
+                    invoice.setStatus(Invoice.InvoiceStatus.PAID);
+                    Lot lot = lotRepository.findByInvoice_Id(invoice.getId());
+                    Koi koi = lot.getKoi();
+                    koi.setStatus(Koi.KoiStatus.SHIPPING);
+                    koiRepository.save(koi);
+                    invoiceRepository.save(invoice);
                 } else {
-                    // Failure
-                    System.out.println("Fail");
+                    Member member = trans.getMember();
+                    walletService.addBalance(member, trans.getAmount());
                 }
+
+                transactionRepository.save(trans);
             }
+            Set<Transaction> transactions = new HashSet<>();
+            for (String transactionId : transactionIds) {
+                transactions.add(transactionRepository.findById(Short.parseShort(transactionId)));
+            }
+
+            Payment payment = new Payment();
+            payment.setVnpAmount(Double.parseDouble(request.getParameter("vnp_Amount")));
+            payment.setVnpBankCode(request.getParameter("vnp_BankCode"));
+            payment.setVnpCardType(request.getParameter("vnp_CardType"));
+            payment.setTransaction(transactions);
+
+            Payment savedPayment = null;
+            if (!isAddBalance) {
+                savedPayment = paymentRepository.save(payment);
+            }
+
+
+            for (String transactionId : transactionIds) {
+                Transaction trans = transactionRepository.findById(Short.parseShort(transactionId));
+
+                // isAddBalance == false
+                if (savedPayment != null) {
+                    trans.setPayment(savedPayment);
+                    trans.setPaymentType(Transaction.PaymentType.BANK);
+                }else{
+                    trans.setPaymentType(Transaction.PaymentType.WALLET);
+                }
+
+                transactionRepository.save(trans);
+            }
+
+            if(isAddBalance) {
+
+                return "http://localhost:5173/wallet";
+            }else {
+                return "http://localhost:5173/billing";
+            }
+
+
+        } else {
+            // Failure
+            System.out.println("Fail");
+            return "http://localhost:5173/billing"; //temp
+        }
+    }
 
 }

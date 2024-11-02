@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (token) {
       const data = jwtDecode(token) as CustomJwtPayload;
 
-      if (data && data.exp * 1000 > Date.now()) {
+      if (data && data.exp && data.exp * 1000 > Date.now()) {
         login({
           id: data.id,
           role: data.scope as Role,

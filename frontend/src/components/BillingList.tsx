@@ -5,7 +5,7 @@ import { formatInTimeZone } from 'date-fns-tz';
 import { NavLink } from 'react-router-dom';
 import { Checkbox } from './ui/checkbox'; // Make sure this is a controlled component
 import { formatMoney } from '@/util/helper';
-import { payByVNPay } from '@/service/paymentService';
+import { payByVNPay, payByWallet } from '@/service/paymentService';
 import { useAuth } from '@/context/AuthContext';
 import { getWalletBallance } from '@/service/walletService';
 
@@ -60,6 +60,7 @@ const BillingList = () => {
       event.preventDefault();
       // console.log('Selected transactions to pay:', Array.from(selectedTransactions));
       if (isUseWallet) {
+         const payment = await payByWallet(Array.from(selectedTransactions));
          
       } else {
          const paymentUrl = await payByVNPay(Array.from(selectedTransactions));

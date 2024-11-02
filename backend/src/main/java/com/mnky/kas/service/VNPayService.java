@@ -80,6 +80,7 @@ public class VNPayService {
 
                 transactionRepository.save(trans);
             }
+
             Set<Transaction> transactions = new HashSet<>();
             for (String transactionId : transactionIds) {
                 transactions.add(transactionRepository.findById(Short.parseShort(transactionId)));

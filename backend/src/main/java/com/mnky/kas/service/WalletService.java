@@ -6,6 +6,7 @@ import com.mnky.kas.dto.response.WalletResponse;
 import com.mnky.kas.model.Member;
 
 import java.text.ParseException;
+import java.util.List;
 import java.util.Map;
 
 public interface WalletService {
@@ -15,4 +16,7 @@ public interface WalletService {
     TransactionResponse addBalanceTransaction(String bearerToken, Double balance) throws ParseException;
 
     void addBalance(Member owner , Double balance);
+
+    void paymentWithWallet(String bearerToken, List<Integer> transactionIds) throws ParseException;
+
 }

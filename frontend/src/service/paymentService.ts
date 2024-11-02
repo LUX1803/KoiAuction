@@ -19,3 +19,20 @@ export const payByVNPay = async (transactionIds: number[]) => {
       console.error(`response code: ${response.status}`);
    }
 }
+
+export const payByWallet = async (transactionIds: number[]) => {
+   const response = await axiosInstance.post(`${API_URL}wallet`,
+      transactionIds,
+      {
+         headers: {
+            'Content-Type': 'application/json'
+         }
+      });
+
+   if (response.status == 200) {
+      console.log("::v::", response);
+      return response.data.paymentUrl;
+   } else {
+      console.error(`response code: ${response.status}`);
+   }
+}

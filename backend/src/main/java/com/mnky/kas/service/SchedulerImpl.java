@@ -58,6 +58,7 @@ public class SchedulerImpl {
                     lotRepository.save(lot);
                 }
                 auction.setAuctionStatus(Auction.AuctionStatus.CLOSED);
+                System.out.println("auctionClose: "+ auction.toString());
                 auctionRepository.save(auction);
             //}
         }, auction.getEnded());
@@ -108,6 +109,7 @@ public class SchedulerImpl {
         taskScheduler.schedule(() -> updateLotStatusToClosed(lot.getId()), lot.getEnded());
     }
 
+    //closed => tao invoice => create transaction
     public void rescheduleLotClosed(Lot lot) {
         System.out.println("Rescheduling lot end for lot ID: " + lot.getId() + " at " + lot.getEnded());
 

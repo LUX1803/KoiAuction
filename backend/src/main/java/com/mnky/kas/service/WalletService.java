@@ -9,4 +9,6 @@ import java.util.Map;
 public interface WalletService {
     void createWallet(WalletRegisterRequest walletRegisterRequest);
     WalletResponse getMemberAndWallet(String bearerToken) throws ParseException;
+
+    void addBalance(String bearerToken, Integer balance) throws ParseException;
 }

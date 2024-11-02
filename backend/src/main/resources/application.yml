@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: koi-auction-system
+  main:
+    banner-mode: off
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://ep-blue-breeze-a1l44d5i.ap-southeast-1.aws.neon.tech:5432/koiauction
+    username: koiauction_owner
+    password: spoXKPb9c8Ud
+#    url: jdbc:postgresql://localhost:5432/koiauction
+#    username: postgres
+#    password: 12345
+
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+        hibernate:
+          jdbc:
+            batch_size: 50
+          default_batch_fetch_size: 50
+    open-in-view: true
+  jackson:
+    default-property-inclusion: non_null
+#secrete key to generate JWT
+jwt:
+  signerKey: uSIRGrHgkXhVEWtm9d7vjm6KW+Nnn51vN2NeX9z+5ovFNTL0+DvmJEDOpjAgYAbC
+
+
+#    defer-datasource-initialization: true
+#
+#  sql:
+#    init:
+#      mode: always
+
+#logging:
+#  level:
+#    root: debug

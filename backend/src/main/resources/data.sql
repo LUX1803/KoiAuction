@@ -1,0 +1,168 @@
+-- SET timezone = 'Asia/Ho_Chi_Minh';
+-- INSERT INTO member (username, password, email, phone, address, firstname, lastname, gender, role) VALUES
+--                                                                                                       ('admin', '$2y$12$L5WvC27eLtT1rDGjN2wZ4eP2DWFBcgrSjU4NNUAkJ.THNdVLwh4T6', 'admin@koiauction.com', '0000000001', 'City A', 'Alan', 'Morgan', 'MALE', 'ADMIN'),
+--                                                                                                       ('manager', '$2y$12$L5WvC27eLtT1rDGjN2wZ4eP2DWFBcgrSjU4NNUAkJ.THNdVLwh4T6', 'manager1@koiauction.com', '0000000002', 'City B', 'Evelyn', 'Sophia', 'FEMALE', 'MANAGER'),
+--                                                                                                       ('staff1', '$2y$12$L5WvC27eLtT1rDGjN2wZ4eP2DWFBcgrSjU4NNUAkJ.THNdVLwh4T6', 'staff1@koiauction.com', '0000000003', 'City C', 'James', 'Chris', 'MALE', 'STAFF'),
+--                                                                                                       ('staff2', '$2y$12$L5WvC27eLtT1rDGjN2wZ4eP2DWFBcgrSjU4NNUAkJ.THNdVLwh4T6', 'staff2@koiauction.com', '0000000004', 'City D', 'Jordan', 'Diego', 'FEMALE', 'STAFF'),
+--                                                                                                       ('shipper', '$2y$12$L5WvC27eLtT1rDGjN2wZ4eP2DWFBcgrSjU4NNUAkJ.THNdVLwh4T6', 'shipper@gmail.com', '0000000005', 'City E', 'Maxx', 'Noah', 'MALE', 'SHIPPER'),
+--                                                                                                       ('bidder1', '$2y$12$L5WvC27eLtT1rDGjN2wZ4eP2DWFBcgrSjU4NNUAkJ.THNdVLwh4T6', 'bidder1@gmail.com', '0000000006', 'City F', 'Frank', 'Fenrir', 'MALE', 'BIDDER'),
+--                                                                                                       ('bidder2', '$2y$12$L5WvC27eLtT1rDGjN2wZ4eP2DWFBcgrSjU4NNUAkJ.THNdVLwh4T6', 'bidder2@gmail.com', '0000000007', 'City G', 'Luna', 'Lily', 'FEMALE', 'BIDDER'),
+--                                                                                                       ('bidder3', '$2y$12$L5WvC27eLtT1rDGjN2wZ4eP2DWFBcgrSjU4NNUAkJ.THNdVLwh4T6', 'bidder3@gmail.com', '0000000008', 'City H', 'Huffman', 'Hill', 'MALE', 'BIDDER'),
+--                                                                                                       ('breeder1', '$2y$12$L5WvC27eLtT1rDGjN2wZ4eP2DWFBcgrSjU4NNUAkJ.THNdVLwh4T6', 'breeder1@gmail.com', '0000000009', 'City I', 'Tylor', 'Carter', 'MALE', 'BREEDER'),
+--                                                                                                       ('breeder2', '$2y$12$L5WvC27eLtT1rDGjN2wZ4eP2DWFBcgrSjU4NNUAkJ.THNdVLwh4T6', 'breeder2@gmail.com', '0000000010', 'City J', 'Oliver', 'David', 'MALE', 'BREEDER'),
+--                                                                                                       ('breeder3', '$2y$12$L5WvC27eLtT1rDGjN2wZ4eP2DWFBcgrSjU4NNUAkJ.THNdVLwh4T6', 'breeder3@gmail.com', '0000000011', 'City K', 'Emma', 'Ava', 'FEMALE', 'BREEDER');
+--
+-- INSERT INTO employee (eeid, member_id) VALUES
+--                                            ('A0001', 1),
+--                                            ('M0002', 2),
+--                                            ('S0003', 3),
+--                                            ('S0004', 4);
+--
+--
+-- INSERT INTO variety (name, description) VALUES
+--                                             ('Kohaku', 'A classic variety with red and white markings.'),
+--                                             ('Sanke', 'A variety with black, red, and white markings.'),
+--                                             ('Showa', 'A variety with black, red, and white markings, but with a different pattern than Sanke.'),
+--                                             ('Tancho', 'A variety with a red head spot and white body.'),
+--                                             ('Bekko', 'A variety with black and white markings.');
+--
+--
+--
+-- INSERT INTO public.auction_method (name, description) VALUES
+--                                                           ('Fixed Price', 'The price of the Koi fish is set at a fixed amount. If one person wants to purchase it, the price remains unchanged. However, if multiple people are interested, at the end of the auction period, the system randomly selects one buyer to purchase the fish.'),
+--                                                           ('Sealed Bid', 'each buyer submits a single bid for the Koi fish, determining the amount they are willing to pay. The bids are secret. When the auction ends, the highest bidder wins the Koi fish.'),
+--                                                           ('English', 'Buyers can place multiple bids for the Koi fish, and the buyer who places the highest bid wins. The bid information is publicly available throughout the auction.'),
+--                                                           ('Dutch', 'The auction starts at a set price, and the price periodically decreases if no one places a bid. The first buyer to accept the current price wins the auction. The bidding information is publicly available.');
+--
+-- INSERT INTO farm (
+--     name,
+--     description,
+--     status,
+--     image,
+--     sent,
+--     replied,
+--     owner_id,
+--     staff_id
+-- ) VALUES (
+--              'Shinoda',
+--              'Farm Description',
+--              'APPROVED',
+--              'https://auctionkoi.com/images/shinoda-logo.png',
+--              '2024-09-20 15:00:00',
+--              '2024-09-20 20:00:00',
+--              9,
+--              'S0003'
+--          );
+--
+--
+--
+-- INSERT INTO koi (
+--     yob,
+--     length,
+--     gender,
+--     image,
+--     status,
+--     sent,
+--     replied,
+--     note,
+--     variety_id,
+--     farm_id,
+--     eeid
+-- ) VALUES
+--     ('2023',15,'MALE','https://cdn.dribbble.com/users/1044993/screenshots/6952491/media/df59e579c24d5511917b0d420cfe300e.png','SOLD','2024-09-20 15:00:00','2024-09-20 20:00:00','OK',1,1,'S0003'),
+--     ('2020',20,'MALE','https://cdn.dribbble.com/users/1044993/screenshots/6952491/media/df59e579c24d5511917b0d420cfe300e.png','AUCTIONING','2024-09-20 15:00:00','2024-09-20 20:00:00','OK',2,1,'S0003'),
+--     ('2023',12,'FEMALE','https://cdn.dribbble.com/users/1044993/screenshots/6952491/media/df59e579c24d5511917b0d420cfe300e.png','AUCTIONING','2024-09-20 15:00:00','2024-09-20 20:00:00','OK',3,1,'S0003'),
+--     ('2021',17,'MALE','https://cdn.dribbble.com/users/1044993/screenshots/6952491/media/df59e579c24d5511917b0d420cfe300e.png','QUEUED','2024-09-20 15:00:00','2024-09-20 20:00:00','OK',4,1,'S0003'),
+--     ('2023',11,'MALE','https://cdn.dribbble.com/users/1044993/screenshots/6952491/media/df59e579c24d5511917b0d420cfe300e.png','PENDING','2024-09-28 15:00:00','2024-09-20 20:00:00','OK',5,1,'S0003');
+--
+--
+-- INSERT INTO auction (
+--     started,
+--     ended,
+--     signup_opened,
+--     signup_closed,
+--     signup_fee,
+--     status,
+--     staff_id
+-- ) VALUES (
+--              '2024-09-20 12:00:00',
+--              '2024-09-30 10:00:00',
+--              '2024-09-10 09:00:00',
+--              '2024-09-18 09:00:00',
+--              200,
+--              'ONGOING',
+--              'S0003'
+--          );
+--
+--
+-- INSERT INTO lot (
+--     started,
+--     ended,
+--     starting_price,
+--     reserve_price,
+--     price_interval,
+--     time_interval,
+--     status,
+--     seller_commission,
+--     buyer_premium,
+--     koi_id,
+--     auction_id,
+--     method_id,
+--     staff_id
+-- ) VALUES (
+--              '2024-09-27 00:00:00',
+--              '2024-09-30 15:00:00',
+--              300.00,
+--              00.00,
+--              00.00,
+--              '00:00:00',
+--              'AWARDED',
+--              0.2,
+--              0.15,
+--              1,
+--              1,
+--              1,
+--              'S0003'
+--          ),
+--          (
+--              '2024-09-27 00:00:00',
+--              '2024-09-30 15:00:00',
+--              300.00,
+--              00.00,
+--              00.00,
+--              '00:00:00',
+--              'LIVE',
+--              0.2,
+--              0.15,
+--              2,
+--              1,
+--              3,
+--              'S0003'
+--          ),
+--          (
+--              '2024-09-27 00:00:00',
+--              '2024-09-30 15:00:00',
+--              300.00,
+--              00.00,
+--              00.00,
+--              '00:00:00',
+--              'UPCOMING',
+--              0.2,
+--              0.15,
+--              3,
+--              1,
+--              3,
+--              'S0003'
+--          );
+--
+--
+-- insert into enrollment (member_id, auction_id) values (6, 1),(7,1), (8,1);
+--
+--
+-- insert into wallet (id, owner_id, balance)
+-- values (1, 6, 1000), (2, 7, 1100), (3, 8, 1500), (4, 9, 500), (5, 10, 7000), (6, 11, 900);
+--
+-- insert into bid (id, amount, automatic, bidder_id, lot_id, highest, time)
+-- values (1, 300, false, 6, 1, true, '2024-09-27 11:00:00'), (2, 300, false, 7, 1, false, '2024-09-27 18:00:00');
+--
+-- insert into invoice (id, recipient_id, hammer_price, buyer_premium, seller_commission, shipping_cost,)

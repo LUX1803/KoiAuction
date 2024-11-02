@@ -25,6 +25,7 @@ import Shipping from './components/Shipping.tsx'
 import Privacy from './components/Privacy.tsx'
 import TermsAndConditions from './components/TermAndConditions.tsx'
 import NextEvent from './components/NextEvent.tsx'
+import Wallet from './components/Wallet.tsx'
 
 
 const route = createBrowserRouter([
@@ -55,6 +56,7 @@ const route = createBrowserRouter([
       { path: '/shipping', element: <Shipping /> },
       { path: '/privacy', element: <Privacy /> },
       { path: '/terms', element: <TermsAndConditions /> },
+      { path: '/wallet', element: <Wallet /> },
     ]
   }
 ])

@@ -26,7 +26,12 @@ function Header() {
    }
 
    useEffect(() => {
-      if (user && user.role == 'BREEDER') {
+      // if (user && user.role == 'BREEDER') {
+      //    getWalletBallance().then((data) => {
+      //       setBallance(data);
+      //    })
+      // }
+      if (user) {
          getWalletBallance().then((data) => {
             setBallance(data);
          })
@@ -144,14 +149,9 @@ function Header() {
                                        </NavLink>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem>
-                                       {
-                                          ballance && (
-                                             <div>
-                                                Ballance: {formatMoney(ballance)}
-                                             </div>
-                                          )
-                                       }
-
+                                       <NavLink to="/wallet">
+                                          Ballance: {formatMoney(ballance ? ballance : 0)}
+                                       </NavLink>
                                     </DropdownMenuItem>
                                  </>
                               )

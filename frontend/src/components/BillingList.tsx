@@ -15,6 +15,8 @@ const BillingList = () => {
    useEffect(() => {
       const fetchTransactions = async () => {
          const data = await getTransaction();
+         // console.log("test: ", data);
+         
          const pendingTransactions = data.filter((transaction: Transaction) => transaction.status === 'PENDING');
          setTransactions(pendingTransactions);
       };

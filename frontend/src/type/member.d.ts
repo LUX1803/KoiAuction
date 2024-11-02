@@ -5,7 +5,8 @@ export enum Role {
    BREEDER = 'BREEDER',
    STAFF = 'STAFF',
    MANAGER = 'MANAGER',
-   ADMIN = 'ADMIN'
+   ADMIN = 'ADMIN',
+   SHIPPER = 'SHIPPER'
 }
 
 export interface Member {

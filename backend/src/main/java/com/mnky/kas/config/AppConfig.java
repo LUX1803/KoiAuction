@@ -51,7 +51,7 @@ public class AppConfig {
     }
 
     private final String[] PUBLIC_URLS_POST = {"/signup", "/signin", "/signout", "/refreshToken"};
-    private final String[] PUBLIC_URLS_GET = {"/auction/**", "/lot/{lotId}/bid", "/lot/{lotId}/winner", "/variety", "/payment/**"};
+    private final String[] PUBLIC_URLS_GET = {"/auction/**", "/lot/{lotId}/bid", "/lot/{lotId}/winner", "/variety", "/payment/**", "/swagger-ui/**", "/v3/api-docs/**"};
 
 
     @Autowired

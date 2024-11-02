@@ -4,20 +4,16 @@ import { Transaction } from '@/type/transaction';
 import { formatMoney } from '@/util/helper';
 import { formatInTimeZone } from 'date-fns-tz';
 import React, { useEffect, useState } from 'react'
-import { NavLink } from 'react-router-dom';
 import { Checkbox } from './ui/checkbox';
 import { useAuth } from '@/context/AuthContext';
 import { addWalletBalance, getWalletBallance } from '@/service/walletService';
-import { Button, Form, Input, InputNumber, Modal } from 'antd';
-import { Toast } from './ui/toast';
+import { Button, Form, InputNumber, Modal } from 'antd';
 import { useToast } from '@/hooks/use-toast';
 
 const Wallet = () => {
 
     const { user } = useAuth();
     const { toast } = useToast();
-
-    const [ballance, setBallance] = useState(null);
 
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [selectedTransactions, setSelectedTransactions] = useState<Set<number>>(new Set());
@@ -38,7 +34,7 @@ const Wallet = () => {
         //getMoney
         if (user) {
             getWalletBallance().then((data) => {
-                setBallance(data);
+                setBalance(data);
             })
         }
 
@@ -104,7 +100,7 @@ const Wallet = () => {
                 </Form>
             </Modal>
             <div >
-                <div>Your current balance: {formatMoney(ballance ? ballance : 0)} </div>
+                <div>Your current balance: {formatMoney(balance ? balance : 0)} </div>
                 <Button type="primary" onClick={showModal}>
                     Create Transaction
                 </Button>

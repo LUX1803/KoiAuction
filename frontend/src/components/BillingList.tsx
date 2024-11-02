@@ -6,18 +6,37 @@ import { NavLink } from 'react-router-dom';
 import { Checkbox } from './ui/checkbox'; // Make sure this is a controlled component
 import { formatMoney } from '@/util/helper';
 import { payByVNPay } from '@/service/paymentService';
+import { useAuth } from '@/context/AuthContext';
+import { getWalletBallance } from '@/service/walletService';
 
 const BillingList = () => {
+
+   const { user } = useAuth();
+
+   const [balance, setBalance] = useState<number>(0);
+   const [isUseWallet, setIsUseWallet] = useState<boolean>(false);
+
    const [transactions, setTransactions] = useState<Transaction[]>([]);
    const [selectedTransactions, setSelectedTransactions] = useState<Set<number>>(new Set());
    const timezone = 'Asia/Bangkok';
+
+
+   useEffect(() => {
+      //getMoney
+      if (user) {
+         getWalletBallance().then((data) => {
+            setBalance(data);
+         })
+      }
+   }, [user])
+
 
    useEffect(() => {
       const fetchTransactions = async () => {
          const data = await getTransaction();
          // console.log("test: ", data);
-         
-         const pendingTransactions = data.filter((transaction: Transaction) => transaction.status === 'PENDING');
+
+         const pendingTransactions = data.filter((transaction: Transaction) => transaction.status === 'PENDING' && transaction.paymentType != 'WALLET');
          setTransactions(pendingTransactions);
       };
 
@@ -39,12 +58,16 @@ const BillingList = () => {
 
    const handleSubmit = async (event: React.FormEvent) => {
       event.preventDefault();
-      console.log('Selected transactions to pay:', Array.from(selectedTransactions));
-      const paymentUrl = await payByVNPay(Array.from(selectedTransactions));
-      if (paymentUrl)         
-         window.open(paymentUrl, '_blank');
-      else
-         console.error('Failed to get payment URL');
+      // console.log('Selected transactions to pay:', Array.from(selectedTransactions));
+      if (isUseWallet) {
+         
+      } else {
+         const paymentUrl = await payByVNPay(Array.from(selectedTransactions));
+         if (paymentUrl)
+            window.open(paymentUrl, '_blank');
+         else
+            console.error('Failed to get payment URL');
+      }
    };
 
    return (
@@ -94,6 +117,9 @@ const BillingList = () => {
                <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
                   Proceed to Payment
                </button>
+            </div>
+            <div className="flex justify-end items-center gap-2 mt-4 mr-4">
+               <Checkbox onClick={() => setIsUseWallet(!isUseWallet)} />Use Wallet: {balance}
             </div>
          </form>
       </>

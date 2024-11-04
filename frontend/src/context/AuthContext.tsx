@@ -1,3 +1,4 @@
+import { getWalletBallance } from "@/service/walletService";
 import { CustomJwtPayload } from "@/type/jwt";
 import { Role } from "@/type/member";
 import { jwtDecode } from "jwt-decode";
@@ -15,6 +16,8 @@ interface AuthContextType {
   user: User | null;
   login: (userData: User) => void;
   logout: () => void;
+  balance: number;
+  getCurrentBallance: () => void
 }
 
 export const useAuth = (): AuthContextType => {
@@ -31,6 +34,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 // Create a provider component
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [balance, setBalance] = useState<number>(0);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -52,6 +56,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  useEffect(() => {
+    //getMoney
+    if (user) {
+      getCurrentBallance()
+    }
+  }, [user])
+
   // Function to handle login
   const login = (userData: User) => {
     setUser(userData);
@@ -62,8 +73,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
+  const getCurrentBallance = () => {
+    user && getWalletBallance().then((data) => {
+      setBalance(data);
+    })
+  }
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, balance, getCurrentBallance }}>
       {children}
     </AuthContext.Provider>
   );

@@ -17,6 +17,8 @@ public interface WalletService {
 
     void addBalance(Member owner , Double balance);
 
-    void paymentWithWallet(String bearerToken, List<Integer> transactionIds) throws ParseException;
+    void deductBalance(Member owner , Double balance);
+
+    WalletResponse paymentWithWallet(String bearerToken, List<Integer> transactionIds) throws ParseException;
 
 }

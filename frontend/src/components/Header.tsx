@@ -11,12 +11,11 @@ import {
    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useEffect, useState } from "react";
-import { getWalletBallance } from "@/service/walletService";
 import { formatMoney } from "@/util/helper";
 
 function Header() {
-   const { user, logout } = useAuth();
-   const [ballance, setBallance] = useState(null);
+   const { user, logout, balance } = useAuth();
+   // const [ballance, setBallance] = useState(null);
    const navigate = useNavigate();
 
    function handleLogout() {
@@ -31,11 +30,11 @@ function Header() {
       //       setBallance(data);
       //    })
       // }
-      if (user) {
-         getWalletBallance().then((data) => {
-            setBallance(data);
-         })
-      }
+      // if (user) {
+      //    getWalletBallance().then((data) => {
+      //       setBallance(data);
+      //    })
+      // }
    }, [user])
    return (
 
@@ -150,7 +149,7 @@ function Header() {
                                     </DropdownMenuItem>
                                     <DropdownMenuItem>
                                        <NavLink to="/wallet">
-                                          Ballance: {formatMoney(ballance ? ballance : 0)}
+                                          Ballance: {formatMoney(balance ? balance : 0)}
                                        </NavLink>
                                     </DropdownMenuItem>
                                  </>

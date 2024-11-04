@@ -1,8 +1,10 @@
 package com.mnky.kas.controller;
 
 
+
 import com.mnky.kas.dto.response.ApiResponse;
 import com.mnky.kas.dto.response.VNPayResponse;
+import com.mnky.kas.dto.response.WalletResponse;
 import com.mnky.kas.service.VNPayService;
 import com.mnky.kas.service.WalletService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,9 +36,12 @@ public class PaymentController {
     }
 
     @PostMapping("/wallet")
-    public ApiResponse paymentWithWallet(@RequestHeader("Authorization") String token, @RequestBody List<Integer> transactionIds) throws IOException, ParseException {
-        walletService.paymentWithWallet(token,transactionIds);
-        return null;
+    public ApiResponse<WalletResponse>  paymentWithWallet(@RequestHeader("Authorization") String token, @RequestBody List<Integer> transactionIds) throws IOException, ParseException {
+        WalletResponse res = walletService.paymentWithWallet(token,transactionIds);
+        return ApiResponse.<WalletResponse>builder()
+                .success(res.isStatus())
+                .data(res)
+                .build();
     }
 
 }

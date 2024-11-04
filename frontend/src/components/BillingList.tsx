@@ -8,12 +8,12 @@ import { formatMoney } from '@/util/helper';
 import { payByVNPay, payByWallet } from '@/service/paymentService';
 import { useAuth } from '@/context/AuthContext';
 import { getWalletBallance } from '@/service/walletService';
+import { useToast } from '@/hooks/use-toast';
 
 const BillingList = () => {
 
-   const { user } = useAuth();
+   const { user, balance, getCurrentBallance } = useAuth();
 
-   const [balance, setBalance] = useState<number>(0);
    const [isUseWallet, setIsUseWallet] = useState<boolean>(false);
 
    const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -21,25 +21,19 @@ const BillingList = () => {
    const timezone = 'Asia/Bangkok';
 
 
+   const [totalTransMoney, setTotalTransMoney] = useState(0);
+
+   const { toast } = useToast();
+
+   const fetchTransactions = async () => {
+      const data = await getTransaction();
+      // console.log("test: ", data);
+
+      const pendingTransactions = data.filter((transaction: Transaction) => transaction.status === 'PENDING' && transaction.paymentType != 'WALLET');
+      setTransactions(pendingTransactions);
+   };
+
    useEffect(() => {
-      //getMoney
-      if (user) {
-         getWalletBallance().then((data) => {
-            setBalance(data);
-         })
-      }
-   }, [user])
-
-
-   useEffect(() => {
-      const fetchTransactions = async () => {
-         const data = await getTransaction();
-         // console.log("test: ", data);
-
-         const pendingTransactions = data.filter((transaction: Transaction) => transaction.status === 'PENDING' && transaction.paymentType != 'WALLET');
-         setTransactions(pendingTransactions);
-      };
-
       fetchTransactions();
    }, []);
 
@@ -59,9 +53,22 @@ const BillingList = () => {
    const handleSubmit = async (event: React.FormEvent) => {
       event.preventDefault();
       // console.log('Selected transactions to pay:', Array.from(selectedTransactions));
-      if (isUseWallet) {
-         const payment = await payByWallet(Array.from(selectedTransactions));
-         
+      if (isUseWallet) {         
+         if(totalTransMoney > balance) {
+            toast({
+                variant: "destructive",
+               title: "Your Wallet doesn't have enough money",
+            });
+         }else{
+            const payment = await payByWallet(Array.from(selectedTransactions))
+            toast({
+               variant: "success",
+               title: "Payment success",
+            });
+            getCurrentBallance();
+            fetchTransactions();
+            setTotalTransMoney(0);
+         }
       } else {
          const paymentUrl = await payByVNPay(Array.from(selectedTransactions));
          if (paymentUrl)
@@ -74,7 +81,7 @@ const BillingList = () => {
    return (
       <>
          <div>
-            <h2>Paid Item</h2>
+            <h2>Paid Item: {formatMoney(totalTransMoney)}</h2>
          </div>
          <form onSubmit={handleSubmit}>
             <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-300">
@@ -88,28 +95,36 @@ const BillingList = () => {
                </div>
 
                <div className="">
-                  {transactions.map((transaction, index) => (
-                     <div key={transaction.id} className="grid grid-cols-[1fr_2fr_2fr_3fr_2fr_2fr] text-gray-800 p-3">
-                        <div className="col-span-1">
-                           {index + 1}
+                  {transactions.map((transaction, index) => {
+                     return (
+                        <div key={transaction.id} className="grid grid-cols-[1fr_2fr_2fr_3fr_2fr_2fr] text-gray-800 p-3">
+                           <div className="col-span-1">
+                              {index + 1}
+                           </div>
+                           <div className="col-span-1">{transaction.description}</div>
+                           <div className="col-span-1">{formatMoney(transaction.amount)} VND</div>
+                           <div className="col-span-1">{transaction.closed && formatInTimeZone(new Date(transaction.closed), timezone, "dd.MM.yyyy HH:mm a")}</div>
+                           <div className="col-span-1">
+                              <NavLink to={`/invoice/${transaction.invoiceId}`} className="text-blue-500 hover:underline">
+                                 View
+                              </NavLink>
+                           </div>
+                           <div className="col-span-1">
+                              <Checkbox
+                                 value={transaction.id}
+                                 checked={selectedTransactions.has(transaction.id)}
+                                 onClick={() => {
+                                    const isChecked = selectedTransactions.has(transaction.id);
+                                    const newTotal = isChecked
+                                       ? totalTransMoney - transaction.amount
+                                       : totalTransMoney + transaction.amount;
+                                    setTotalTransMoney(newTotal);
+                                    toggleSelection(transaction.id)}}
+                              />
+                           </div>
                         </div>
-                        <div className="col-span-1">{transaction.description}</div>
-                        <div className="col-span-1">{formatMoney(transaction.amount)} VND</div>
-                        <div className="col-span-1">{transaction.closed && formatInTimeZone(new Date(transaction.closed), timezone, "dd.MM.yyyy HH:mm a")}</div>
-                        <div className="col-span-1">
-                           <NavLink to={`/invoice/${transaction.invoiceId}`} className="text-blue-500 hover:underline">
-                              View
-                           </NavLink>
-                        </div>
-                        <div className="col-span-1">
-                           <Checkbox
-                              value={transaction.id}
-                              checked={selectedTransactions.has(transaction.id)}
-                              onClick={() => toggleSelection(transaction.id)}
-                           />
-                        </div>
-                     </div>
-                  ))}
+                     )
+                  })}
                </div>
             </div>
 

@@ -91,33 +91,35 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     public void addBalance(Member owner , Double balance) {
-
         Wallet wallet = walletRepository.findByOwner(owner);
         wallet.setBalance(wallet.getBalance() + balance);
         walletRepository.save(wallet);
-
     }
 
     @Override
-    public void paymentWithWallet(String bearerToken, List<Integer> transIdList) throws ParseException {
+    @Transactional
+    public void deductBalance(Member owner , Double balance) {
+        Wallet wallet = walletRepository.findByOwner(owner);
+        wallet.setBalance(wallet.getBalance() - balance);
+        walletRepository.save(wallet);
+    }
+
+    @Override
+    public WalletResponse paymentWithWallet(String bearerToken, List<Integer> transIdList) throws ParseException {
         //getUser
         String username = JWTUtil.getUserNameFromToken(bearerToken.substring(7));
         Member member = memberRepository.findByUsername(username);
         Wallet wallet = walletRepository.findByOwner(member);
 
-        System.out.println("Current Money: " + wallet.getBalance());
-
-        long amount = 0;
+        double amount = 0;
 
         for ( Integer transId : transIdList ) {
             //getTransaction
             Transaction transaction = transactionRepository.findById((short) Integer.parseInt(String.valueOf(transId)));
 
-            //cal all amount
+            //calc all amount
             amount += transaction.getAmount();
-
             transaction.setStatus(Transaction.TransactionStatus.SUCCESS);
-            System.out.println("Current Amount: "+ transaction.getAmount());
 
             //update Transactions
             transaction.setDescription(transaction.getDescription() + "_" + "REM_" + transaction.getAmount());
@@ -129,11 +131,10 @@ public class WalletServiceImpl implements WalletService {
             Lot lot = lotRepository.findByInvoice_Id(invoice.getId());
             Koi koi = lot.getKoi();
             koi.setStatus(Koi.KoiStatus.SHIPPING);
-//        koiRepository.save(koi); ====================
-//        invoiceRepository.save(invoice); ===================
 
-//        transactionRepository.save(transaction);  =============================
-
+            koiRepository.save(koi);
+            invoiceRepository.save(invoice);
+            transactionRepository.save(transaction);
         }
 
 
@@ -145,24 +146,34 @@ public class WalletServiceImpl implements WalletService {
         //create payment
         Payment payment = new Payment();
 
-        amount *= 100L;
         payment.setVnpAmount(amount);
         payment.setTransaction(transactions);
-//        Payment savedPayment = paymentRepository.save(payment); ==============
+        Payment savedPayment = paymentRepository.save(payment);
 
         //setType to WALLET
         for (Integer transId : transIdList) {
             Transaction trans = transactionRepository.findById(Short.parseShort(transId+""));
-            //        transaction.setPayment(savedPayment);=======================
+            trans.setPayment(savedPayment);
             trans.setPaymentType(Transaction.PaymentType.WALLET);
             //update transaction
-//        transactionRepository.save(transaction);  =============================
+            transactionRepository.save(trans);
         }
 
+        if(wallet.getBalance() <= amount) {
+            return WalletResponse.builder()
+                    .balance(amount)
+                    .message("Your Wallet doesn't have enough money")
+                    .status(false)
+                    .build();
+        }
+        // deduct the wallet
+        deductBalance(member, amount);
 
-
-
-
+        return WalletResponse.builder()
+                .balance(amount)
+                .message("Payment Success")
+                .status(true)
+                .build();
         //CATCH WHEN WALLET KHONG DU
     }
 

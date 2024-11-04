@@ -3,16 +3,16 @@ import { getTransaction } from '@/service/transactionService';
 import { Transaction } from '@/type/transaction';
 import { formatMoney } from '@/util/helper';
 import { formatInTimeZone } from 'date-fns-tz';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Checkbox } from './ui/checkbox';
 import { useAuth } from '@/context/AuthContext';
-import { addWalletBalance, getWalletBallance } from '@/service/walletService';
+import { addWalletBalance } from '@/service/walletService';
 import { Button, Form, InputNumber, Modal } from 'antd';
 import { useToast } from '@/hooks/use-toast';
 
 const Wallet = () => {
 
-    const { user } = useAuth();
+    const { user, balance } = useAuth();
     const { toast } = useToast();
 
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -21,8 +21,8 @@ const Wallet = () => {
 
     //Create Trans
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [balance, setBalance] = useState<number>(0);
-
+    // const [balance, setBalance] = useState<number>(0);
+    const transactionBalancedRef = useRef<number>(0)
 
     const showModal = () => {
         setIsModalOpen(true);
@@ -30,13 +30,6 @@ const Wallet = () => {
 
 
     useEffect(() => {
-
-        //getMoney
-        if (user) {
-            getWalletBallance().then((data) => {
-                setBalance(data);
-            })
-        }
 
         const fetchTransactions = async () => {
             const data = await getTransaction();
@@ -72,7 +65,7 @@ const Wallet = () => {
     };
 
     const addBalance = async () => {
-        addWalletBalance(balance).then((data) => {
+        addWalletBalance(transactionBalancedRef.current).then((data) => {
             setTransactions([...transactions, data]);
             toast({
                 variant: "success",
@@ -95,7 +88,9 @@ const Wallet = () => {
             }}>
                 <Form layout="vertical" autoComplete="off">
                     <Form.Item name="age" label="Input Amount: ">
-                        <InputNumber className='w-1/2' value={balance} onChange={ (e) => e && setBalance(e) } />
+                        <InputNumber className='w-1/2' value={transactionBalancedRef.current} onChange={(value) => {
+                            transactionBalancedRef.current = value || 0;
+                        }} />
                     </Form.Item>
                 </Form>
             </Modal>
@@ -124,7 +119,7 @@ const Wallet = () => {
                                     {index + 1}
                                 </div>
                                 <div className="col-span-1">{transaction.description}</div>
-                                <div className="col-span-1">{formatMoney(transaction.amount)} VND</div>
+                                <div className={`col-span-1 ${transaction.description.includes('REM') ? 'text-red-500' : 'text-green-500'}`}>{formatMoney(transaction.amount)} VND</div>
                                 <div className="col-span-1">{formatInTimeZone(new Date(transaction.created), timezone, "dd.MM.yyyy HH:mm a")}</div>
                                 <div className={`col-span-1 ${transaction.status === 'PENDING' ? 'text-orange-500' : 'text-green-500'}`}>
                                     {transaction.status}

@@ -30,7 +30,6 @@ export const payByWallet = async (transactionIds: number[]) => {
       });
 
    if (response.status == 200) {
-      console.log("::v::", response);
       return response.data.paymentUrl;
    } else {
       console.error(`response code: ${response.status}`);

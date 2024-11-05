@@ -140,19 +140,19 @@ public class BidServiceImpl implements BidService {
 //            wallet.setBalance(wallet.getBalance() - amount);
 //            walletRepository.updateByOwnerId(member.getId(), wallet.getBalance());
 
-            Timestamp time = Timestamp.valueOf(LocalDateTime.now());
-            bidRepository.saveBid(amount,true, member.getId(), lot.getId(), time);
+        Timestamp time = Timestamp.valueOf(LocalDateTime.now());
+        bidRepository.saveBid(amount, true, member.getId(), lot.getId(), time);
 
-            messagingTemplate.convertAndSend("/topic/lot/" + lot.getId() + "/bid", bidMapper.toBidViewResponse(bidRepository.findFirstByLotIdOrderByTimeDesc(lotId)));
+        messagingTemplate.convertAndSend("/topic/lot/" + lot.getId() + "/bid", bidMapper.toBidViewResponse(bidRepository.findFirstByLotIdOrderByTimeDesc(lotId)));
 
-            lot.setEnded(time);
-            schedulerService.scheduleLotClosed(lot);
+        lot.setEnded(time);
+        schedulerService.scheduleLotClosed(lot);
 
-            Hibernate.initialize(lot.getKoi().getVariety());
-            messagingTemplate.convertAndSend("/topic/lot/" + lot.getId(), lotMapper.toLotDetailResponse(lot));
+        Hibernate.initialize(lot.getKoi().getVariety());
+        messagingTemplate.convertAndSend("/topic/lot/" + lot.getId(), lotMapper.toLotDetailResponse(lot));
 
 
-            //}
+        //}
     }
 
     @Override
@@ -188,7 +188,7 @@ public class BidServiceImpl implements BidService {
             // Extend the auction by 5 minutes
             System.out.println("Bid placed in the last 5 minutes. Extending the auction by 5 minutes.");
             lot.setEnded(Timestamp.valueOf(LocalDateTime.now().plusMinutes(5)));
-            lotRepository.save(lot);  // Update the lot end time
+            lotRepository.save(lot);  // Update the lot end time ===================
 
             // Reschedule the end time with the new extended time
             schedulerService.rescheduleLotClosed(lot);
@@ -202,11 +202,17 @@ public class BidServiceImpl implements BidService {
 //            lotRepository.save(lot);
 //            messagingTemplate.convertAndSend("/topic/lot/" + lot.getId(), lotMapper.toLotDetailResponse(lot));
 //        } else {
-            bidRepository.saveBid(bidAmount, false, bidderId, lotId, time);
-            Bid bid = bidRepository.findFirstByLotIdOrderByAmountDesc(lotId);
-            Hibernate.initialize(bid.getBidder());
-            messagingTemplate.convertAndSend("/topic/lot/" + lot.getId() + "/bid", bidMapper.toBidViewResponse(bid));
-        
+
+
+        //Minus your balance in your wallet
+         walletService.placeBidUsingWallet(token, bidAmount, lotId);
+
+         bidRepository.saveBid(bidAmount, false, bidderId, lotId, time);
+
+        Bid bid = bidRepository.findFirstByLotIdOrderByAmountDesc(lotId);
+        Hibernate.initialize(bid.getBidder());
+        messagingTemplate.convertAndSend("/topic/lot/" + lot.getId() + "/bid", bidMapper.toBidViewResponse(bid));
+
     }
 
 
@@ -230,7 +236,6 @@ public class BidServiceImpl implements BidService {
         if (lot.getStatus() != Lot.LotStatus.LIVE) {
             return;
         }
-
 
 
         Timestamp time = Timestamp.valueOf(LocalDateTime.now());
@@ -271,8 +276,6 @@ public class BidServiceImpl implements BidService {
         }
         return bidMapper.toBidViewResponse(bid);
     }
-
-
 
 
 }

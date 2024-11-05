@@ -21,4 +21,5 @@ public interface WalletService {
 
     WalletResponse paymentWithWallet(String bearerToken, List<Integer> transactionIds) throws ParseException;
 
+    WalletResponse placeBidUsingWallet(String bearerToken, Double amount, Short lotId) throws ParseException;
 }

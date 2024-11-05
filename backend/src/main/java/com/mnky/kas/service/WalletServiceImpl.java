@@ -13,10 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class WalletServiceImpl implements WalletService {
@@ -28,8 +25,11 @@ public class WalletServiceImpl implements WalletService {
     private final LotRepository lotRepository;
     private final KoiRepository koiRepository;
     private final PaymentRepository paymentRepository;
+
+    private final BidRepository bidRepository;
+
     @Autowired
-    public WalletServiceImpl(WalletRepository walletRepository, MemberRepository memberRepository, TransactionRepository transactionRepository, TransactionMapper transactionMapper, InvoiceRepository invoiceRepository, LotRepository lotRepository, KoiRepository koiRepository, PaymentRepository paymentRepository) {
+    public WalletServiceImpl(WalletRepository walletRepository, MemberRepository memberRepository, TransactionRepository transactionRepository, TransactionMapper transactionMapper, InvoiceRepository invoiceRepository, LotRepository lotRepository, KoiRepository koiRepository, PaymentRepository paymentRepository, BidRepository bidRepository) {
         this.walletRepository = walletRepository;
         this.memberRepository = memberRepository;
         this.transactionRepository = transactionRepository;
@@ -38,6 +38,7 @@ public class WalletServiceImpl implements WalletService {
         this.lotRepository = lotRepository;
         this.koiRepository = koiRepository;
         this.paymentRepository = paymentRepository;
+        this.bidRepository = bidRepository;
     }
 
     @Override
@@ -175,6 +176,72 @@ public class WalletServiceImpl implements WalletService {
                 .status(true)
                 .build();
         //CATCH WHEN WALLET KHONG DU
+    }
+
+
+    //To create transaction for placing bid
+    @Override
+    @Transactional
+    public WalletResponse placeBidUsingWallet(String bearerToken, Double amount, Short lotId ) throws ParseException {
+        //getUser
+        String username = JWTUtil.getUserNameFromToken(bearerToken.substring(7));
+        Member member = memberRepository.findByUsername(username);
+        Wallet wallet = walletRepository.findByOwner(member);
+
+        //Create empty Transaction:
+        Transaction transaction = new Transaction();
+        transaction.setPaymentType(Transaction.PaymentType.WALLET);
+        transaction.setClosed(null);
+        transaction.setCreated(new Timestamp(System.currentTimeMillis()));
+        transaction.setUpdated(new Timestamp(System.currentTimeMillis()));
+        transaction.setMember(member);
+
+//        doesnt need invoice and payment
+        transaction.setInvoice(null);
+        transaction.setPayment(null);
+        transaction.setStatus(Transaction.TransactionStatus.SUCCESS);
+
+        if(wallet.getBalance() < amount) {
+            System.out.println("Your wallet doesn't have enough money");
+            return WalletResponse.builder()
+                    .balance(amount)
+                    .message("Payment Failed")
+                    .status(false)
+                    .build();
+        }else{
+            // Get the placed bid then find the deduct amount
+            Lot lot = lotRepository.findById(lotId).orElse(null);
+            Set<Bid> bidList = lot.getBids();
+
+            double placedBid = 0;
+
+            if (bidList != null) {
+                for (Bid bid : bidList) {
+                    if(bid.getBidder().getId() == member.getId()){
+                        placedBid += bid.getAmount();
+                    }
+                }
+            }else{
+                System.out.println("Set of Bid Not Found");
+            }
+
+
+            double newDeductAmount = amount - placedBid;
+
+            transaction.setAmount(newDeductAmount);
+            transaction.setDescription(new Date().getTime() + "_" + "BID_LOT_" + lotId + "_" +  newDeductAmount);
+
+            // deduct the wallet
+            deductBalance(member, newDeductAmount);
+            transactionRepository.save(transaction);
+
+            return WalletResponse.builder()
+                    .balance(amount)
+                    .message("Payment Success")
+                    .status(true)
+                    .build();
+        }
+
     }
 
 }

@@ -103,25 +103,25 @@ const Wallet = () => {
             </div>
             <form onSubmit={handleSubmit}>
                 <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-300">
-                    <div className="grid grid-cols-[1fr_2fr_2fr_3fr_2fr_2fr] bg-gray-100 text-gray-700 font-semibold p-3">
+                    <div className="grid grid-cols-12 bg-gray-100 text-gray-700 font-semibold p-3">
                         <div className="col-span-1">No.</div>
-                        <div className="col-span-1">Description</div>
-                        <div className="col-span-1">Amount</div>
-                        <div className="col-span-1">Due Date</div>
-                        <div className="col-span-1">Status</div>
+                        <div className="col-span-3">Description</div>
+                        <div className="col-span-2">Amount</div>
+                        <div className="col-span-3">Due Date</div>
+                        <div className="col-span-2">Status</div>
                         <div className="col-span-1">Action</div>
                     </div>
 
                     <div className="">
                         {transactions.map((transaction, index) => (
-                            <div key={transaction.id} className="grid grid-cols-[1fr_2fr_2fr_3fr_2fr_2fr] text-gray-800 p-3">
+                            <div key={transaction.id} className="grid grid-cols-12 text-gray-800 p-3">
                                 <div className="col-span-1">
                                     {index + 1}
                                 </div>
-                                <div className="col-span-1">{transaction.description}</div>
-                                <div className={`col-span-1 ${transaction.description.includes('REM') ? 'text-red-500' : 'text-green-500'}`}>{formatMoney(transaction.amount)} VND</div>
-                                <div className="col-span-1">{formatInTimeZone(new Date(transaction.created), timezone, "dd.MM.yyyy HH:mm a")}</div>
-                                <div className={`col-span-1 ${transaction.status === 'PENDING' ? 'text-orange-500' : 'text-green-500'}`}>
+                                <div className="col-span-3">{transaction.description}</div>
+                                <div className={`col-span-2 ${transaction.description.includes('REM') || transaction.description.includes('BID')  ? 'text-red-500' : 'text-green-500'}`}>{formatMoney(transaction.amount)} VND</div>
+                                <div className="col-span-3">{formatInTimeZone(new Date(transaction.created), timezone, "dd.MM.yyyy HH:mm a")}</div>
+                                <div className={`col-span-2 ${transaction.status === 'PENDING' ? 'text-orange-500' : 'text-green-500'}`}>
                                     {transaction.status}
                                 </div>
                                 <div className="col-span-1">

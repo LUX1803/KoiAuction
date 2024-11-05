@@ -47,4 +47,5 @@ public interface BidRepository extends JpaRepository<Bid, Short> {
     Bid findFirstByLotIdOrderByAmountDesc(short lotId);
 
     Bid findFirstByLotIdOrderByTimeDesc(short lotId);
+
 }

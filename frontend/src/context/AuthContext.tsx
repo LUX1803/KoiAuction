@@ -75,6 +75,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const getCurrentBallance = () => {
     user && getWalletBallance().then((data) => {
+      console.log("DA TRU TIEN: ", data);
+      
       setBalance(data);
     })
   }

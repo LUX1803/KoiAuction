@@ -7,17 +7,20 @@ import { useAuth } from "@/context/AuthContext";
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 import { useToast } from "@/hooks/use-toast";
+import { formatMoney } from "@/util/helper";
+import { Modal } from 'antd';
 
 
 
 const PlaceBid = ({ lotDetail }: { lotDetail: LotDetailProps }) => {
 
-  const { user } = useAuth();
+  const { user, balance, getCurrentBallance } = useAuth();
   const [highestBid, setHighestBid] = useState<Bid>();
   const [bidAmount, setBidAmount] = useState<number>(lotDetail.startingPrice);
   const [isPlacedBid, setIsPlacedBid] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
 
   // Fetch bid details and check if the user has placed a bid
@@ -76,7 +79,7 @@ const PlaceBid = ({ lotDetail }: { lotDetail: LotDetailProps }) => {
   }, [])
 
 
-  const placeEnglishBid = () => {
+  const placeEnglishBid = async () => {
     // Get the JWT from localStorage
     const token = localStorage.getItem('token');
 
@@ -92,40 +95,62 @@ const PlaceBid = ({ lotDetail }: { lotDetail: LotDetailProps }) => {
           amount: bidAmount,
         }));
       }
-
     });
+
   };
 
+  //balance: htai, bidAmount: tien dang chon
   const placeBid = async () => {
     try {
-      switch (lotDetail.methodId) {
-        case 1:
-          await placeFixedPriceBid(lotDetail.lotId);
-          break
-        case 2:
-          if (validateBid()) {
-            await placeSealedBid(lotDetail.lotId, bidAmount);
-          } else {
-            toast({
-              variant: "destructive",
-              title: "Invalid bid",
-              description: error || "Your bid is invalid",
-            });
-          }
-          break;
-        case 3:
-          if (validateBid()) {
-            await placeEnglishBid();
-          } else {
-            toast({
-              variant: "destructive",
-              title: "Invalid bid",
-              description: error || "Your bid is invalid",
-            });
-          }
-          break;
-      }
+      if (balance < bidAmount){
+        toast({
+          variant: "destructive",
+          title: "Insufficient balance",
+          description: "Your balance is not enough to place the bid",
+        });
+      }else{
 
+
+        switch (lotDetail.methodId) {
+          case 1:
+            await placeFixedPriceBid(lotDetail.lotId);
+            break
+          case 2:
+            if (validateBid()) {
+              await placeSealedBid(lotDetail.lotId, bidAmount);
+            } else {
+              toast({
+                variant: "destructive",
+                title: "Invalid bid",
+                description: error || "Your bid is invalid",
+              });
+            }
+            break;
+          case 3:
+            if (validateBid()) {
+              await placeEnglishBid()
+            } else {
+              toast({
+                variant: "destructive",
+                title: "Invalid bid",
+                description: error || "Your bid is invalid",
+              });
+            }
+            break;
+        }
+
+
+        toast({
+          variant: "success",
+          title: "Payment success",
+          description: "Sucess"
+        });
+      }
+      setIsModalOpen(false);
+
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      getCurrentBallance();
+      
     } catch (error) {
       console.error("Error placing bid:", error);
     }
@@ -160,6 +185,16 @@ const PlaceBid = ({ lotDetail }: { lotDetail: LotDetailProps }) => {
   };
 
   const handleBuyNow = () => {
+
+    if (lotDetail.buyNowPrice > balance){
+      toast({
+        variant: "destructive",
+        title: "Insufficient balance",
+        description: "Your balance is not enough buy the lot",
+      });
+      return;
+    }
+
     if (lotDetail.methodId == 4) {
       placeDutchBid(lotDetail.lotId);
 
@@ -167,13 +202,26 @@ const PlaceBid = ({ lotDetail }: { lotDetail: LotDetailProps }) => {
       buyLotNow(lotDetail.lotId);
     }
   };
+
   return (
     <>
+      <Modal title="Place your bid" open={isModalOpen} onCancel={() => { setIsModalOpen(false); }} onOk={() => {
+        placeBid();
+      }}>
+        <div className="">
+          <div className="font-bold">Are you sure you want to bid this lot?</div>
+          <div className="ml-3">Your current wallet: <span className="text-green-500 font-bold">{formatMoney(balance)}</span></div>
+          <div className="ml-3">Bid amount: <span className="text-red-500 font-bold">{formatMoney(bidAmount)}</span></div>
+          <hr className="border-1 my-3 " />
+          <div className="ml-3">Type of bid amount: <span className="text-orange-500 font-bold">{formatMoney(balance - bidAmount)}</span></div>
+        </div>
+      </Modal>
+
       {(lotDetail.methodId === 3) && (
         <Button
           className="px-4 py-2 rounded-full bg-purple-300 text-lg"
           onClick={handleBuyNow}>
-          Buy now: {lotDetail.buyNowPrice}
+          Buy now: {formatMoney(lotDetail.buyNowPrice)}
         </Button>
       )}
       {isPlacedBid ? (
@@ -189,7 +237,7 @@ const PlaceBid = ({ lotDetail }: { lotDetail: LotDetailProps }) => {
             lotDetail.methodId === 1 && (<Button
               onClick={placeBid}
               className="px-4 py-2 rounded-full bg-purple-300 text-lg">
-              Place bid: {lotDetail.startingPrice}
+              Place bid: {formatMoney(lotDetail.startingPrice)}
             </Button>)
           }
           {
@@ -197,27 +245,32 @@ const PlaceBid = ({ lotDetail }: { lotDetail: LotDetailProps }) => {
               <Button
                 onClick={handleBuyNow}
                 className="px-4 py-2 rounded-full bg-purple-300 text-lg">
-                Buy now: {lotDetail.buyNowPrice}
+                Buy now: {formatMoney(lotDetail.buyNowPrice)}
               </Button>
             )
           }
           {(lotDetail.methodId === 2 || lotDetail.methodId === 3) && (
-            <>
+            <div className="flex flex-col items-end">
               <div className="flex px-4 py-2">
-                <Input
-                  className="inline rounded-2xl w-40"
-                  type="text"
-                  value={bidAmount}
-                  onChange={(e) => setBidAmount(e.target.value)}
-                />
+                  <Input
+                    className="inline rounded-2xl w-40"
+                    type="number"
+                    step="1000"
+                    min={bidAmount}
+                    value={bidAmount}
+                    onChange={(e) => 
+                      setBidAmount(parseFloat(e.target.value)
+                    )}
+                  />
                 <Button
-                  onClick={placeBid}
+                    onClick={() => setIsModalOpen(true)}
                   className="bg-black text-white rounded-full ml-4"
                 >
                   Place bid
                 </Button>
               </div>
-            </>
+              <div className="w-100 mr-4">Your Wallet: {formatMoney(balance)}</div>
+            </div>
           )}
         </>
       )}

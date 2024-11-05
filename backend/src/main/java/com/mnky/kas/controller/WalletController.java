@@ -5,6 +5,7 @@ import com.mnky.kas.dto.response.TransactionResponse;
 import com.mnky.kas.dto.response.WalletResponse;
 import com.mnky.kas.model.Transaction;
 import com.mnky.kas.service.WalletService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,7 @@ public class WalletController {
 
 
     @PostMapping("/wallet/{balance}")
+    @Operation(summary = "Add balance to wallet", description = "This action will also create a transaction with out invoice or payment.")
     public ApiResponse<TransactionResponse> addBalance(@RequestHeader("Authorization") String bearerToken,
                                   @PathVariable Double balance) {
         try {
@@ -45,5 +47,16 @@ public class WalletController {
                     .message("An error occurred while adding balance")
                     .build();
         }
+    }
+
+    @GetMapping("/wallet/{lotId}")
+    @Operation(summary = "Get money for placed bid by lot ID", description = "Retrieve the placed bid for a specific lot ID")
+    public ApiResponse<WalletResponse> getPlacedBidByLotId(@RequestHeader("Authorization") String bearerToken, @PathVariable("lotId") Short lotId) throws ParseException {
+        return ApiResponse.<WalletResponse>builder()
+                .code(200)
+                .success(true)
+                .message("Get placed bid success for lot: "+lotId)
+                .data(walletService.getPlacedBidByLotId(bearerToken, lotId))
+                .build();
     }
 }

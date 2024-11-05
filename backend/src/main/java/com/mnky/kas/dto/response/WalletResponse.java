@@ -9,6 +9,4 @@ import lombok.*;
 @Builder
 public class WalletResponse {
     private double balance;
-    private String message;
-    private boolean status;
 }

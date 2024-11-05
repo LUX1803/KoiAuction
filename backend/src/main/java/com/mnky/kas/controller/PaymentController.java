@@ -39,7 +39,9 @@ public class PaymentController {
     public ApiResponse<WalletResponse>  paymentWithWallet(@RequestHeader("Authorization") String token, @RequestBody List<Integer> transactionIds) throws IOException, ParseException {
         WalletResponse res = walletService.paymentWithWallet(token,transactionIds);
         return ApiResponse.<WalletResponse>builder()
-                .success(res.isStatus())
+                .success(true)
+                .code(200)
+                .message("Payment Success")
                 .data(res)
                 .build();
     }

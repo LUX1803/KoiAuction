@@ -161,19 +161,13 @@ public class WalletServiceImpl implements WalletService {
         }
 
         if(wallet.getBalance() <= amount) {
-            return WalletResponse.builder()
-                    .balance(amount)
-                    .message("Your Wallet doesn't have enough money")
-                    .status(false)
-                    .build();
+            return null;
         }
         // deduct the wallet
         deductBalance(member, amount);
 
         return WalletResponse.builder()
                 .balance(amount)
-                .message("Payment Success")
-                .status(true)
                 .build();
         //CATCH WHEN WALLET KHONG DU
     }
@@ -205,28 +199,10 @@ public class WalletServiceImpl implements WalletService {
             System.out.println("Your wallet doesn't have enough money");
             return WalletResponse.builder()
                     .balance(amount)
-                    .message("Payment Failed")
-                    .status(false)
                     .build();
         }else{
-            // Get the placed bid then find the deduct amount
-            Lot lot = lotRepository.findById(lotId).orElse(null);
-            Set<Bid> bidList = lot.getBids();
 
-            double placedBid = 0;
-
-            if (bidList != null) {
-                for (Bid bid : bidList) {
-                    if(bid.getBidder().getId() == member.getId()){
-                        placedBid += bid.getAmount();
-                    }
-                }
-            }else{
-                System.out.println("Set of Bid Not Found");
-            }
-
-
-            double newDeductAmount = amount - placedBid;
+            double newDeductAmount = amount - getPlacedBidByLotId(bearerToken, lotId).getBalance();
 
             transaction.setAmount(newDeductAmount);
             transaction.setDescription(new Date().getTime() + "_" + "BID_LOT_" + lotId + "_" +  newDeductAmount);
@@ -237,11 +213,39 @@ public class WalletServiceImpl implements WalletService {
 
             return WalletResponse.builder()
                     .balance(amount)
-                    .message("Payment Success")
-                    .status(true)
                     .build();
         }
 
+    }
+
+    @Override
+    public WalletResponse getPlacedBidByLotId(String bearerToken, Short lotId) throws ParseException {
+        // Get the placed bid then find the deduct amount
+        String username = JWTUtil.getUserNameFromToken(bearerToken.substring(7));
+        Member member = memberRepository.findByUsername(username);
+
+        Lot lot = lotRepository.findById(lotId).orElse(null);
+        Set<Bid> bidList = lot.getBids();
+
+        double placedBid = 0;
+
+        if (bidList != null) {
+            for (Bid bid : bidList) {
+                if(bid.getBidder().getId() == member.getId()){
+                    placedBid += bid.getAmount();
+                }
+            }
+        }else{
+            System.out.println("Set of Bid Not Found");
+            return WalletResponse.builder()
+                    .balance(0)
+                    .build();
+        }
+
+
+        return WalletResponse.builder()
+                .balance(placedBid)
+                .build();
     }
 
 }

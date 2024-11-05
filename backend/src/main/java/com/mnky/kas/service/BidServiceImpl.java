@@ -188,7 +188,7 @@ public class BidServiceImpl implements BidService {
             // Extend the auction by 5 minutes
             System.out.println("Bid placed in the last 5 minutes. Extending the auction by 5 minutes.");
             lot.setEnded(Timestamp.valueOf(LocalDateTime.now().plusMinutes(5)));
-            lotRepository.save(lot);  // Update the lot end time ===================
+            lotRepository.save(lot);  // Update the lot end time
 
             // Reschedule the end time with the new extended time
             schedulerService.rescheduleLotClosed(lot);

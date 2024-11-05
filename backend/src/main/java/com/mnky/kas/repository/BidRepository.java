@@ -48,4 +48,12 @@ public interface BidRepository extends JpaRepository<Bid, Short> {
 
     Bid findFirstByLotIdOrderByTimeDesc(short lotId);
 
+    @Query("SELECT b FROM Bid b " +
+            "WHERE b.lot.id = :lotId " +
+            "AND b.amount = ( " +
+            "    SELECT MAX(b2.amount) FROM Bid b2 " +
+            "    WHERE b2.lot.id = :lotId AND b2.bidder.id = b.bidder.id " +
+            ")")
+    List<Bid> findAllHighestBidsByLotId(@Param("lotId") short lotId);
+
 }

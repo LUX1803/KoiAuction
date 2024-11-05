@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -25,7 +26,6 @@ public class WalletServiceImpl implements WalletService {
     private final LotRepository lotRepository;
     private final KoiRepository koiRepository;
     private final PaymentRepository paymentRepository;
-
     private final BidRepository bidRepository;
 
     @Autowired
@@ -47,6 +47,7 @@ public class WalletServiceImpl implements WalletService {
         walletRepository.saveWallet(walletRegisterRequest.getBalance(), walletRegisterRequest.getOwnerId());
 
     }
+
     public WalletResponse getMemberAndWallet(String bearerToken) throws ParseException {
         // Parse token để lấy thông tin người dùng
         //SignedJWT jwt = SignedJWT.parse(bearerToken);
@@ -91,7 +92,41 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional
-    public void addBalance(Member owner , Double balance) {
+    public List<TransactionResponse> refundAllBalanceTransactionByLotId(short lotId) {
+
+        List<TransactionResponse> ls = new ArrayList<>();
+
+        List<Bid> listBidder = bidRepository.findAllHighestBidsByLotId(lotId);
+        //print the list
+        for (Bid b : listBidder) {
+            List<Short> listTrans = transactionRepository.findTransactionByDescriptionCodeAndBidder("RET_LOT_" + lotId, b.getBidder().getId());
+            if(!listTrans.isEmpty()) continue;
+
+            Transaction transaction = new Transaction();
+            transaction.setPaymentType(Transaction.PaymentType.WALLET);
+            transaction.setClosed(null);
+            transaction.setCreated(new Timestamp(System.currentTimeMillis()));
+            transaction.setUpdated(new Timestamp(System.currentTimeMillis()));
+            transaction.setMember(b.getBidder());
+            //        doesnt need invoice and payment
+            transaction.setInvoice(null);
+            transaction.setPayment(null);
+            transaction.setStatus(Transaction.TransactionStatus.SUCCESS);
+            transaction.setAmount(b.getAmount());
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss_dd-MM-yyyy");
+            // Định dạng thời gian hiện tại
+            String formattedDate = sdf.format(new Date());
+            transaction.setDescription(formattedDate + "_" + "RET_LOT_" + lotId + "_" + b.getAmount());
+            transactionRepository.save(transaction);
+            ls.add(transactionMapper.toTransactionResponse(transaction));
+            addBalance(b.getBidder(), b.getAmount());
+        }
+        return ls;
+    }
+
+    @Override
+    @Transactional
+    public void addBalance(Member owner, Double balance) {
         Wallet wallet = walletRepository.findByOwner(owner);
         wallet.setBalance(wallet.getBalance() + balance);
         walletRepository.save(wallet);
@@ -99,7 +134,7 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional
-    public void deductBalance(Member owner , Double balance) {
+    public void deductBalance(Member owner, Double balance) {
         Wallet wallet = walletRepository.findByOwner(owner);
         wallet.setBalance(wallet.getBalance() - balance);
         walletRepository.save(wallet);
@@ -114,7 +149,7 @@ public class WalletServiceImpl implements WalletService {
 
         double amount = 0;
 
-        for ( Integer transId : transIdList ) {
+        for (Integer transId : transIdList) {
             //getTransaction
             Transaction transaction = transactionRepository.findById((short) Integer.parseInt(String.valueOf(transId)));
 
@@ -142,7 +177,7 @@ public class WalletServiceImpl implements WalletService {
         //Create Set<Trans> => add to Payment
         Set<Transaction> transactions = new HashSet<>();
         for (Integer transId : transIdList) {
-            transactions.add(transactionRepository.findById(Short.parseShort(transId+"")));
+            transactions.add(transactionRepository.findById(Short.parseShort(transId + "")));
         }
         //create payment
         Payment payment = new Payment();
@@ -153,14 +188,14 @@ public class WalletServiceImpl implements WalletService {
 
         //setType to WALLET
         for (Integer transId : transIdList) {
-            Transaction trans = transactionRepository.findById(Short.parseShort(transId+""));
+            Transaction trans = transactionRepository.findById(Short.parseShort(transId + ""));
             trans.setPayment(savedPayment);
             trans.setPaymentType(Transaction.PaymentType.WALLET);
             //update transaction
             transactionRepository.save(trans);
         }
 
-        if(wallet.getBalance() <= amount) {
+        if (wallet.getBalance() <= amount) {
             return null;
         }
         // deduct the wallet
@@ -176,7 +211,7 @@ public class WalletServiceImpl implements WalletService {
     //To create transaction for placing bid
     @Override
     @Transactional
-    public WalletResponse placeBidUsingWallet(String bearerToken, Double amount, Short lotId ) throws ParseException {
+    public WalletResponse placeBidUsingWallet(String bearerToken, Double amount, Short lotId) throws ParseException {
         //getUser
         String username = JWTUtil.getUserNameFromToken(bearerToken.substring(7));
         Member member = memberRepository.findByUsername(username);
@@ -195,17 +230,17 @@ public class WalletServiceImpl implements WalletService {
         transaction.setPayment(null);
         transaction.setStatus(Transaction.TransactionStatus.SUCCESS);
 
-        if(wallet.getBalance() < amount) {
+        if (wallet.getBalance() < amount) {
             System.out.println("Your wallet doesn't have enough money");
             return WalletResponse.builder()
                     .balance(amount)
                     .build();
-        }else{
+        } else {
 
             double newDeductAmount = amount - getPlacedBidByLotId(bearerToken, lotId).getBalance();
 
             transaction.setAmount(newDeductAmount);
-            transaction.setDescription(new Date().getTime() + "_" + "BID_LOT_" + lotId + "_" +  newDeductAmount);
+            transaction.setDescription(new Date().getTime() + "_" + "BID_LOT_" + lotId + "_" + newDeductAmount);
 
             // deduct the wallet
             deductBalance(member, newDeductAmount);
@@ -231,11 +266,11 @@ public class WalletServiceImpl implements WalletService {
 
         if (bidList != null) {
             for (Bid bid : bidList) {
-                if(bid.getBidder().getId() == member.getId()){
+                if (bid.getBidder().getId() == member.getId()) {
                     placedBid += bid.getAmount();
                 }
             }
-        }else{
+        } else {
             System.out.println("Set of Bid Not Found");
             return WalletResponse.builder()
                     .balance(0)

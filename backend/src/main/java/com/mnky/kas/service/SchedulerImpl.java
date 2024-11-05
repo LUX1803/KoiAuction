@@ -30,7 +30,8 @@ public class SchedulerImpl {
     private final InvoiceRepository invoiceRepository;
     private final TransactionRepository transactionRepository;
     private final KoiRepository koiRepository;
-
+    private final MemberRepository memberRepository;
+    private final WalletService walletService;
 
     public void scheduleAuctionStart(Auction auction) {
         taskScheduler.schedule(() -> {
@@ -44,6 +45,7 @@ public class SchedulerImpl {
         }, auction.getStarted());
     }
 
+    //DOING
     public void scheduleAuctionEnd(Auction auction) {
         taskScheduler.schedule(() -> {
             System.out.println("Executing auction end for auction ID: " + auction.getId() + " at " + new Timestamp(System.currentTimeMillis()));
@@ -99,7 +101,7 @@ public class SchedulerImpl {
             }
         }
     }
-
+    //DOING
     public void scheduleLotClosed(Lot lot) {
         // Log the scheduling time for the end lot
 
@@ -142,7 +144,10 @@ public class SchedulerImpl {
 
                 if (winner) {
                     lot.setStatus(Lot.LotStatus.AWARDED);
-                    System.out.println("Lot ID: " + lotId + " status updated to AWARDED");
+                    System.out.println("Lot ID: " + lotId + " status updated to AWARDED"); //MODIFY ADD HERE
+
+                    walletService.refundAllBalanceTransactionByLotId(lotId);
+
                     koi.setStatus(Koi.KoiStatus.HELD);
                     generateInvoice(lotId);
                 } else {
@@ -250,6 +255,7 @@ public class SchedulerImpl {
         return true;
     }
 
+    //Lay Bid winner ra dua theo lotID -> set Bid winner, highest = true
     private boolean englishAuctionLotWinner(short lotId) {
         Bid winner = bidRepository.findFirstByLotIdOrderByAmountDesc(lotId);
         if (winner != null) {

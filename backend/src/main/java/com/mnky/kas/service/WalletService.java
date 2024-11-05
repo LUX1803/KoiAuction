@@ -14,6 +14,7 @@ public interface WalletService {
     WalletResponse getMemberAndWallet(String bearerToken) throws ParseException;
 
     TransactionResponse addBalanceTransaction(String bearerToken, Double balance) throws ParseException;
+    List<TransactionResponse> refundAllBalanceTransactionByLotId(short lotId);
 
     void addBalance(Member owner , Double balance);
 
@@ -24,4 +25,6 @@ public interface WalletService {
     WalletResponse placeBidUsingWallet(String bearerToken, Double amount, Short lotId) throws ParseException;
 
     WalletResponse getPlacedBidByLotId(String bearerToken, Short lotId) throws ParseException;
+
+
 }

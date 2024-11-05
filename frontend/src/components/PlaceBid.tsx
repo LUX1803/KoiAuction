@@ -9,6 +9,7 @@ import { Stomp } from "@stomp/stompjs";
 import { useToast } from "@/hooks/use-toast";
 import { formatMoney } from "@/util/helper";
 import { Modal } from 'antd';
+import { getPlacedBidsByLotId } from "@/service/walletService";
 
 
 
@@ -21,6 +22,9 @@ const PlaceBid = ({ lotDetail }: { lotDetail: LotDetailProps }) => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  //all placed bids get by lotId and userId
+  const [placedBid , setPlacedBid] = useState<number>(0);
 
 
   // Fetch bid details and check if the user has placed a bid
@@ -50,7 +54,11 @@ const PlaceBid = ({ lotDetail }: { lotDetail: LotDetailProps }) => {
     };
 
     fetchBidData();
+    getPlacedBidsByLotId(parseInt(lotDetail.lotId)).then((data) => {      
+      setPlacedBid(data.balance);
+    });
   }, []);
+
 
   // listen highest bid
   useEffect(() => {
@@ -211,9 +219,10 @@ const PlaceBid = ({ lotDetail }: { lotDetail: LotDetailProps }) => {
         <div className="">
           <div className="font-bold">Are you sure you want to bid this lot?</div>
           <div className="ml-3">Your current wallet: <span className="text-green-500 font-bold">{formatMoney(balance)}</span></div>
-          <div className="ml-3">Bid amount: <span className="text-red-500 font-bold">{formatMoney(bidAmount)}</span></div>
+          <div className="ml-3">New bid amount: <span className="text-red-500 font-bold">{formatMoney(bidAmount)}</span></div>
+          {placedBid > 0  && <div className="ml-3">Past placed Bid: <span className="text-orange-500 font-bold">{formatMoney(placedBid)}</span></div>}
           <hr className="border-1 my-3 " />
-          <div className="ml-3">Type of bid amount: <span className="text-orange-500 font-bold">{formatMoney(balance - bidAmount)}</span></div>
+          <div className="ml-3">Type of bid amount: <span className="text-orange-500 font-bold">{formatMoney(balance - bidAmount + placedBid)}</span></div>
         </div>
       </Modal>
 

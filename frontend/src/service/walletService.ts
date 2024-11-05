@@ -24,3 +24,14 @@ export const addWalletBalance = async (balance: number) => {
       console.error(`response code: ${response.status}`);
    }
 }
+
+export const getPlacedBidsByLotId = async (lotId: number) => {
+   const response = await axiosInstance.get(
+      API_URL+`/${lotId}`
+   )
+   if (response.status == 200) {
+      return response.data.data;
+   } else {
+      console.error(`response code: ${response.status}`);
+   }
+}

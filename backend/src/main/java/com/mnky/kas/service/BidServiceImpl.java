@@ -75,6 +75,10 @@ public class BidServiceImpl implements BidService {
         if (lot == null) {
             throw new AppException(ErrorCode.LOT_NOT_FOUND);
         }
+
+        //Minus your balance in your wallet
+        walletService.placeBidUsingWallet(token, amount, lotId);
+
         bidRepository.saveBid(amount, false, member.getId(), lot.getId(), Timestamp.valueOf(LocalDateTime.now()));
         messagingTemplate.convertAndSend("/topic/lot/" + lot.getId() + "/bid", bidMapper.toBidViewResponse(bidRepository.findFirstByLotIdOrderByTimeDesc(lotId)));
 

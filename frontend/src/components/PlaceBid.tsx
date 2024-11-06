@@ -205,26 +205,27 @@ const PlaceBid = ({ lotDetail }: { lotDetail: LotDetailProps }) => {
 
     const exactBuyNowAmount = lotDetail.buyNowPrice - placedBid;
 
-    if (lotDetail.buyNowPrice > balance){
+    if (exactBuyNowAmount > balance){
       toast({
         variant: "destructive",
-        title: "Insufficient balance" + exactBuyNowAmount + " vs " + balance,
-        description: "Your balance is not enough buy the lot",
+        title: "Insufficient balance",
+        description: "Your balance is not enough buy the lot, You need to pay: " + formatMoney(exactBuyNowAmount),
       });
       return;
     }
+    if (lotDetail.methodId == 4) {
+      placeDutchBid(lotDetail.lotId);
+
+    } else {
+      buyLotNow(lotDetail.lotId);
+    }
+
     toast({
       variant: "success",
-      title: "DU TIEN ROI: balance: " + balance,
-      description: "Your balance is not enough buy the lot",
+      title: "Buy lot success",
+      description: "Congratulation, you have successfully buy the lot",
     });
 
-    // if (lotDetail.methodId == 4) {
-    //   placeDutchBid(lotDetail.lotId);
-
-    // } else {
-    //   buyLotNow(lotDetail.lotId);
-    // }
   };
 
   return (

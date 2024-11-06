@@ -149,6 +149,7 @@ public class SchedulerImpl {
                     //MODIFY REFUND MONEY HERE
                     walletService.refundAllBalanceTransactionByLotId(lotId);
 
+
                     koi.setStatus(Koi.KoiStatus.HELD);
                     generateInvoice(lotId);
                 } else {

@@ -245,14 +245,20 @@ public class BidServiceImpl implements BidService {
 
 
         double amount = lot.getBuyNowPrice();
-        bidRepository.saveBid(amount, true, bidderId, lotId, time);
 
+        //Buy Lot = Tien buy now - tien da dat cuoc => hoan tien
+        //place bid with highest price
+        walletService.placeBidUsingWallet(token, amount, lotId);
+
+        bidRepository.saveBid(amount, true, bidderId, lotId, time);
         Bid bid = bidRepository.findFirstByLotIdOrderByAmountDesc(lotId);
+
         Hibernate.initialize(bid.getBidder());
         messagingTemplate.convertAndSend("/topic/lot/" + lot.getId() + "/bid", bidMapper.toBidViewResponse(bid));
 
         Hibernate.initialize(lot.getKoi().getVariety());
         messagingTemplate.convertAndSend("/topic/lot/" + lot.getId(), lotMapper.toLotDetailResponse(lot));
+
         schedulerService.scheduleLotClosed(lot);
     }
 

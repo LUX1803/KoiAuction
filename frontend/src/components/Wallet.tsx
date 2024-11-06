@@ -36,7 +36,7 @@ const Wallet = () => {
 
             const filterTransactions = data.filter((transaction: Transaction) => transaction.memberId === user?.id && transaction.paymentType === 'WALLET');
 
-            setTransactions(filterTransactions);
+            setTransactions(filterTransactions.reverse());
         };
 
         fetchTransactions();

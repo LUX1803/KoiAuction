@@ -120,6 +120,8 @@ public class WalletServiceImpl implements WalletService {
             // Định dạng thời gian hiện tại
             String formattedDate = sdf.format(new Date());
             transaction.setDescription(formattedDate + "_" + "RET_LOT_" + lotId + "_" + b.getAmount());
+
+//            System.out.println("trans: " + transaction.toString());
             transactionRepository.save(transaction);
             ls.add(transactionMapper.toTransactionResponse(transaction));
             addBalance(b.getBidder(), b.getAmount());

@@ -24,7 +24,8 @@ public interface WalletService {
 
     WalletResponse placeBidUsingWallet(String bearerToken, Double amount, Short lotId) throws ParseException;
 
-    WalletResponse getPlacedBidByLotId(String bearerToken, Short lotId) throws ParseException;
+    //Get User placed bid by lot ID ( highest amount all placed Bid )
+    WalletResponse getUserPlacedBidByLotId(String bearerToken, Short lotId) throws ParseException;
 
 
 }

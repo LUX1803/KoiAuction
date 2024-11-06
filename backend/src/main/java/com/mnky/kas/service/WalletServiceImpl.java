@@ -230,14 +230,17 @@ public class WalletServiceImpl implements WalletService {
         transaction.setPayment(null);
         transaction.setStatus(Transaction.TransactionStatus.SUCCESS);
 
-        if (wallet.getBalance() < amount) {
-            System.out.println("Your wallet doesn't have enough money");
+        //Amount dat cuoc - placedBid amount
+        final double bidAmount = amount - getUserPlacedBidByLotId(bearerToken, lotId).getBalance();
+
+        if (wallet.getBalance() < bidAmount) {
+            System.out.println("Your wallet doesn't have enough money: " + wallet.getBalance() + " < " + amount);
             return WalletResponse.builder()
                     .balance(amount)
                     .build();
         } else {
 
-            double newDeductAmount = amount - getPlacedBidByLotId(bearerToken, lotId).getBalance();
+            double newDeductAmount = amount - getUserPlacedBidByLotId(bearerToken, lotId).getBalance();
 
             transaction.setAmount(newDeductAmount);
             transaction.setDescription(new Date().getTime() + "_" + "BID_LOT_" + lotId + "_" + newDeductAmount);
@@ -254,29 +257,22 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    public WalletResponse getPlacedBidByLotId(String bearerToken, Short lotId) throws ParseException {
+    public WalletResponse getUserPlacedBidByLotId(String bearerToken, Short lotId) throws ParseException {
         // Get the placed bid then find the deduct amount
         String username = JWTUtil.getUserNameFromToken(bearerToken.substring(7));
         Member member = memberRepository.findByUsername(username);
 
-        Lot lot = lotRepository.findById(lotId).orElse(null);
-        Set<Bid> bidList = lot.getBids();
-
         double placedBid = 0;
 
-        if (bidList != null) {
-            for (Bid bid : bidList) {
+        List<Bid> listBidder = bidRepository.findAllHighestBidsByLotId(lotId);
+
+        if (listBidder != null) {
+            for (Bid bid : listBidder) {
                 if (bid.getBidder().getId() == member.getId()) {
                     placedBid += bid.getAmount();
                 }
             }
-        } else {
-            System.out.println("Set of Bid Not Found");
-            return WalletResponse.builder()
-                    .balance(0)
-                    .build();
         }
-
 
         return WalletResponse.builder()
                 .balance(placedBid)

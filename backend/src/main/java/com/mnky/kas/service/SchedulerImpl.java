@@ -144,8 +144,9 @@ public class SchedulerImpl {
 
                 if (winner) {
                     lot.setStatus(Lot.LotStatus.AWARDED);
-                    System.out.println("Lot ID: " + lotId + " status updated to AWARDED"); //MODIFY ADD HERE
+                    System.out.println("Lot ID: " + lotId + " status updated to AWARDED");
 
+                    //MODIFY REFUND MONEY HERE
                     walletService.refundAllBalanceTransactionByLotId(lotId);
 
                     koi.setStatus(Koi.KoiStatus.HELD);

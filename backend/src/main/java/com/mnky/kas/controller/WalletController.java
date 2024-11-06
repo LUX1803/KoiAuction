@@ -56,7 +56,7 @@ public class WalletController {
                 .code(200)
                 .success(true)
                 .message("Get placed bid success for lot: "+lotId)
-                .data(walletService.getPlacedBidByLotId(bearerToken, lotId))
+                .data(walletService.getUserPlacedBidByLotId(bearerToken, lotId))
                 .build();
     }
 }

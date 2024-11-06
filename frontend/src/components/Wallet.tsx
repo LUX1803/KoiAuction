@@ -125,11 +125,11 @@ const Wallet = () => {
                                     {transaction.status}
                                 </div>
                                 <div className="col-span-1">
-                                    <Checkbox
+                                    {transaction.status === 'PENDING' && <Checkbox
                                         value={transaction.id}
                                         checked={selectedTransactions.has(transaction.id)}
                                         onClick={() => toggleSelection(transaction.id)}
-                                    />
+                                    />}
                                 </div>
                             </div>
                         ))}

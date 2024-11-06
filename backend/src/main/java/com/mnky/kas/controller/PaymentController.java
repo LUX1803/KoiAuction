@@ -7,6 +7,7 @@ import com.mnky.kas.dto.response.VNPayResponse;
 import com.mnky.kas.dto.response.WalletResponse;
 import com.mnky.kas.service.VNPayService;
 import com.mnky.kas.service.WalletService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,8 @@ public class PaymentController {
     private final WalletService walletService;
 
     @GetMapping("/vnpay")
+    @Operation(summary = "VNPay Payment",
+            description = "Example details for testing: \n Account: 9704198526191432198,\n Account: NGUYEN VAN A, \nExpiration date: 7/15, \nReference number: 123456.")
     public VNPayResponse pay(HttpServletRequest request) {
         return vnPayService.createVnPayPayment(request);
     }

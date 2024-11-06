@@ -9,7 +9,7 @@ import { Stomp } from "@stomp/stompjs";
 import { useToast } from "@/hooks/use-toast";
 import { formatMoney } from "@/util/helper";
 import { Modal } from 'antd';
-import { getPlacedBidsByLotId } from "@/service/walletService";
+import { getUserPlacedBidsByLotId } from "@/service/walletService";
 
 
 
@@ -54,7 +54,7 @@ const PlaceBid = ({ lotDetail }: { lotDetail: LotDetailProps }) => {
     };
 
     fetchBidData();
-    getPlacedBidsByLotId(parseInt(lotDetail.lotId)).then((data) => {      
+    getUserPlacedBidsByLotId(parseInt(lotDetail.lotId)).then((data) => {      
       setPlacedBid(data.balance);
     });
   }, []);
@@ -109,8 +109,13 @@ const PlaceBid = ({ lotDetail }: { lotDetail: LotDetailProps }) => {
 
   //balance: htai, bidAmount: tien dang chon
   const placeBid = async () => {
+    const exactBidAmount = bidAmount - placedBid; 
     try {
-      if (balance < bidAmount){
+      if (balance < exactBidAmount){
+        console.log("your curr wallet", balance);
+        console.log("bid amount: ", bidAmount);
+        
+        
         toast({
           variant: "destructive",
           title: "Insufficient balance",
@@ -158,6 +163,10 @@ const PlaceBid = ({ lotDetail }: { lotDetail: LotDetailProps }) => {
 
       await new Promise(resolve => setTimeout(resolve, 3000));
       getCurrentBallance();
+      //fetch last placed bid for buy now action
+      getUserPlacedBidsByLotId(parseInt(lotDetail.lotId)).then((data) => {
+        setPlacedBid(data.balance);
+      });
       
     } catch (error) {
       console.error("Error placing bid:", error);
@@ -194,21 +203,28 @@ const PlaceBid = ({ lotDetail }: { lotDetail: LotDetailProps }) => {
 
   const handleBuyNow = () => {
 
+    const exactBuyNowAmount = lotDetail.buyNowPrice - placedBid;
+
     if (lotDetail.buyNowPrice > balance){
       toast({
         variant: "destructive",
-        title: "Insufficient balance",
+        title: "Insufficient balance" + exactBuyNowAmount + " vs " + balance,
         description: "Your balance is not enough buy the lot",
       });
       return;
     }
+    toast({
+      variant: "success",
+      title: "DU TIEN ROI: balance: " + balance,
+      description: "Your balance is not enough buy the lot",
+    });
 
-    if (lotDetail.methodId == 4) {
-      placeDutchBid(lotDetail.lotId);
+    // if (lotDetail.methodId == 4) {
+    //   placeDutchBid(lotDetail.lotId);
 
-    } else {
-      buyLotNow(lotDetail.lotId);
-    }
+    // } else {
+    //   buyLotNow(lotDetail.lotId);
+    // }
   };
 
   return (
@@ -222,7 +238,7 @@ const PlaceBid = ({ lotDetail }: { lotDetail: LotDetailProps }) => {
           <div className="ml-3">New bid amount: <span className="text-red-500 font-bold">{formatMoney(bidAmount)}</span></div>
           {placedBid > 0  && <div className="ml-3">Past placed Bid: <span className="text-orange-500 font-bold">{formatMoney(placedBid)}</span></div>}
           <hr className="border-1 my-3 " />
-          <div className="ml-3">Type of bid amount: <span className="text-orange-500 font-bold">{formatMoney(balance - bidAmount + placedBid)}</span></div>
+          <div className="ml-3">Your new balance: <span className="text-orange-500 font-bold">{formatMoney(balance - bidAmount + placedBid)}</span></div>
         </div>
       </Modal>
 

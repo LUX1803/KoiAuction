@@ -73,7 +73,10 @@ public class WalletServiceImpl implements WalletService {
         //Create Transactions
         Transaction transaction = new Transaction();
         transaction.setAmount(balance);
-        transaction.setDescription(new Date().getTime() + "_" + "ADD_" + balance);
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss_dd-MM-yyyy");
+        // Định dạng thời gian hiện tại
+        String formattedDate = sdf.format(new Date());
+        transaction.setDescription(formattedDate + "_" + "ADD_" + balance);
         transaction.setPaymentType(Transaction.PaymentType.WALLET);
         transaction.setClosed(null);
         transaction.setCreated(new Timestamp(System.currentTimeMillis()));
@@ -243,7 +246,10 @@ public class WalletServiceImpl implements WalletService {
             double newDeductAmount = amount - getUserPlacedBidByLotId(bearerToken, lotId).getBalance();
 
             transaction.setAmount(newDeductAmount);
-            transaction.setDescription(new Date().getTime() + "_" + "BID_LOT_" + lotId + "_" + newDeductAmount);
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss_dd-MM-yyyy");
+            // Định dạng thời gian hiện tại
+            String formattedDate = sdf.format(new Date());
+            transaction.setDescription(formattedDate + "_" + "BID_LOT_" + lotId + "_" + newDeductAmount);
 
             // deduct the wallet
             deductBalance(member, newDeductAmount);

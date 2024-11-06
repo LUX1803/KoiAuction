@@ -148,6 +148,10 @@ public class BidServiceImpl implements BidService {
 //            walletRepository.updateByOwnerId(member.getId(), wallet.getBalance());
 
         Timestamp time = Timestamp.valueOf(LocalDateTime.now());
+
+        //Minus your balance in your wallet
+        walletService.placeBidUsingWallet(token, amount, lotId);
+
         bidRepository.saveBid(amount, true, member.getId(), lot.getId(), time);
 
         messagingTemplate.convertAndSend("/topic/lot/" + lot.getId() + "/bid", bidMapper.toBidViewResponse(bidRepository.findFirstByLotIdOrderByTimeDesc(lotId)));
